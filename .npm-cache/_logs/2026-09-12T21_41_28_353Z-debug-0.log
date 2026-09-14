@@ -1,0 +1,154 @@
+0 verbose cli /usr/local/Cellar/node/24.2.0/bin/node /usr/local/bin/npm
+1 info using npm@11.3.0
+2 info using node@v24.2.0
+3 silly config load:file:/usr/local/Cellar/node/24.2.0/libexec/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/Natech/Downloads/development/DailyOS/.npmrc
+5 warn Unknown user config "tmp". This will stop working in the next major version of npm.
+6 silly config load:file:/usr/local/Cellar/node/24.2.0/etc/npmrc
+7 verbose title npm install
+8 verbose argv "install" "--userconfig" "./.npmrc"
+9 verbose logfile logs-max:10 dir:/Users/Natech/Downloads/development/DailyOS/.npm-cache/_logs/2026-09-12T21_41_28_353Z-
+10 verbose logfile /Users/Natech/Downloads/development/DailyOS/.npm-cache/_logs/2026-09-12T21_41_28_353Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:2348810240 maxSize:587202560 maxEntrySize:293601280
+13 silly idealTree buildDeps
+14 silly fetch manifest @google/genai@^0.1.1
+15 silly packumentCache full:https://registry.npmjs.org/@google%2fgenai cache-miss
+16 http fetch GET https://registry.npmjs.org/@google%2fgenai attempt 1 failed with ENOTFOUND
+17 http fetch GET https://registry.npmjs.org/@google%2fgenai attempt 2 failed with ENOTFOUND
+18 http fetch GET https://registry.npmjs.org/@google%2fgenai attempt 3 failed with ENOTFOUND
+19 silly fetch manifest @supabase/supabase-js@^2.48.1
+20 silly packumentCache full:https://registry.npmjs.org/@supabase%2fsupabase-js cache-miss
+21 http fetch GET https://registry.npmjs.org/@supabase%2fsupabase-js attempt 1 failed with ENOTFOUND
+22 http fetch GET https://registry.npmjs.org/@supabase%2fsupabase-js attempt 2 failed with ENOTFOUND
+23 http fetch GET https://registry.npmjs.org/@supabase%2fsupabase-js attempt 3 failed with ENOTFOUND
+24 silly fetch manifest better-sqlite3@^11.8.1
+25 silly packumentCache full:https://registry.npmjs.org/better-sqlite3 cache-miss
+26 http fetch GET https://registry.npmjs.org/better-sqlite3 attempt 1 failed with ENOTFOUND
+27 http fetch GET https://registry.npmjs.org/better-sqlite3 attempt 2 failed with ENOTFOUND
+28 http fetch GET https://registry.npmjs.org/better-sqlite3 attempt 3 failed with ENOTFOUND
+29 silly fetch manifest clsx@^2.1.1
+30 silly packumentCache full:https://registry.npmjs.org/clsx cache-miss
+31 http fetch GET https://registry.npmjs.org/clsx attempt 1 failed with ENOTFOUND
+32 http fetch GET https://registry.npmjs.org/clsx attempt 2 failed with ENOTFOUND
+33 http fetch GET https://registry.npmjs.org/clsx attempt 3 failed with ENOTFOUND
+34 silly fetch manifest cors@^2.8.5
+35 silly packumentCache full:https://registry.npmjs.org/cors cache-miss
+36 http fetch GET https://registry.npmjs.org/cors attempt 1 failed with ENOTFOUND
+37 http fetch GET https://registry.npmjs.org/cors attempt 2 failed with ENOTFOUND
+38 http fetch GET https://registry.npmjs.org/cors attempt 3 failed with ENOTFOUND
+39 silly fetch manifest dotenv@^16.4.7
+40 silly packumentCache full:https://registry.npmjs.org/dotenv cache-miss
+41 http fetch GET https://registry.npmjs.org/dotenv attempt 1 failed with ENOTFOUND
+42 http fetch GET https://registry.npmjs.org/dotenv attempt 2 failed with ENOTFOUND
+43 http fetch GET https://registry.npmjs.org/dotenv attempt 3 failed with ENOTFOUND
+44 silly fetch manifest express@^4.21.2
+45 silly packumentCache full:https://registry.npmjs.org/express cache-miss
+46 http fetch GET https://registry.npmjs.org/express attempt 1 failed with ENOTFOUND
+47 http fetch GET https://registry.npmjs.org/express attempt 2 failed with ENOTFOUND
+48 http fetch GET https://registry.npmjs.org/express attempt 3 failed with ENOTFOUND
+49 silly fetch manifest lucide-react@^0.475.0
+50 silly packumentCache full:https://registry.npmjs.org/lucide-react cache-miss
+51 http fetch GET https://registry.npmjs.org/lucide-react attempt 1 failed with ENOTFOUND
+52 http fetch GET https://registry.npmjs.org/lucide-react attempt 2 failed with ENOTFOUND
+53 http fetch GET https://registry.npmjs.org/lucide-react attempt 3 failed with ENOTFOUND
+54 silly fetch manifest node-cron@^3.0.3
+55 silly packumentCache full:https://registry.npmjs.org/node-cron cache-miss
+56 http fetch GET https://registry.npmjs.org/node-cron attempt 1 failed with ENOTFOUND
+57 http fetch GET https://registry.npmjs.org/node-cron attempt 2 failed with ENOTFOUND
+58 http fetch GET https://registry.npmjs.org/node-cron attempt 3 failed with ENOTFOUND
+59 silly fetch manifest react@^19.0.0
+60 silly packumentCache full:https://registry.npmjs.org/react cache-miss
+61 http fetch GET https://registry.npmjs.org/react attempt 1 failed with ENOTFOUND
+62 http fetch GET https://registry.npmjs.org/react attempt 2 failed with ENOTFOUND
+63 http fetch GET https://registry.npmjs.org/react attempt 3 failed with ENOTFOUND
+64 silly fetch manifest react-dom@^19.0.0
+65 silly packumentCache full:https://registry.npmjs.org/react-dom cache-miss
+66 http fetch GET https://registry.npmjs.org/react-dom attempt 1 failed with ENOTFOUND
+67 http fetch GET https://registry.npmjs.org/react-dom attempt 2 failed with ENOTFOUND
+68 http fetch GET https://registry.npmjs.org/react-dom attempt 3 failed with ENOTFOUND
+69 silly fetch manifest recharts@^2.15.1
+70 silly packumentCache full:https://registry.npmjs.org/recharts cache-miss
+71 http fetch GET https://registry.npmjs.org/recharts attempt 1 failed with ENOTFOUND
+72 http fetch GET https://registry.npmjs.org/recharts attempt 2 failed with ENOTFOUND
+73 http fetch GET https://registry.npmjs.org/recharts attempt 3 failed with ENOTFOUND
+74 silly fetch manifest tailwind-merge@^3.0.1
+75 silly packumentCache full:https://registry.npmjs.org/tailwind-merge cache-miss
+76 http fetch GET https://registry.npmjs.org/tailwind-merge attempt 1 failed with ENOTFOUND
+77 http fetch GET https://registry.npmjs.org/tailwind-merge attempt 2 failed with ENOTFOUND
+78 http fetch GET https://registry.npmjs.org/tailwind-merge attempt 3 failed with ENOTFOUND
+79 silly fetch manifest @vitejs/plugin-react@^4.3.4
+80 silly packumentCache full:https://registry.npmjs.org/@vitejs%2fplugin-react cache-miss
+81 http fetch GET https://registry.npmjs.org/@vitejs%2fplugin-react attempt 1 failed with ENOTFOUND
+82 http fetch GET https://registry.npmjs.org/@vitejs%2fplugin-react attempt 2 failed with ENOTFOUND
+83 http fetch GET https://registry.npmjs.org/@vitejs%2fplugin-react attempt 3 failed with ENOTFOUND
+84 silly fetch manifest autoprefixer@^10.4.20
+85 silly packumentCache full:https://registry.npmjs.org/autoprefixer cache-miss
+86 http fetch GET https://registry.npmjs.org/autoprefixer attempt 1 failed with ENOTFOUND
+87 http fetch GET https://registry.npmjs.org/autoprefixer attempt 2 failed with ENOTFOUND
+88 http fetch GET https://registry.npmjs.org/autoprefixer attempt 3 failed with ENOTFOUND
+89 silly fetch manifest nodemon@^3.1.9
+90 silly packumentCache full:https://registry.npmjs.org/nodemon cache-miss
+91 http fetch GET https://registry.npmjs.org/nodemon attempt 1 failed with ENOTFOUND
+92 http fetch GET https://registry.npmjs.org/nodemon attempt 2 failed with ENOTFOUND
+93 http fetch GET https://registry.npmjs.org/nodemon attempt 3 failed with ENOTFOUND
+94 silly fetch manifest postcss@^8.5.2
+95 silly packumentCache full:https://registry.npmjs.org/postcss cache-miss
+96 http fetch GET https://registry.npmjs.org/postcss attempt 1 failed with ENOTFOUND
+97 http fetch GET https://registry.npmjs.org/postcss attempt 2 failed with ENOTFOUND
+98 http fetch GET https://registry.npmjs.org/postcss attempt 3 failed with ENOTFOUND
+99 silly fetch manifest tailwindcss@^3.4.17
+100 silly packumentCache full:https://registry.npmjs.org/tailwindcss cache-miss
+101 http fetch GET https://registry.npmjs.org/tailwindcss attempt 1 failed with ENOTFOUND
+102 http fetch GET https://registry.npmjs.org/tailwindcss attempt 2 failed with ENOTFOUND
+103 http fetch GET https://registry.npmjs.org/tailwindcss attempt 3 failed with ENOTFOUND
+104 silly fetch manifest vite@^6.1.0
+105 silly packumentCache full:https://registry.npmjs.org/vite cache-miss
+106 http fetch GET https://registry.npmjs.org/vite attempt 1 failed with ENOTFOUND
+107 http fetch GET https://registry.npmjs.org/vite attempt 2 failed with ENOTFOUND
+108 http fetch GET https://registry.npmjs.org/vite attempt 3 failed with ENOTFOUND
+109 silly placeDep ROOT @google/genai@ OK for: daily-os@1.0.0 want: ^0.1.1
+110 silly placeDep ROOT @supabase/supabase-js@ OK for: daily-os@1.0.0 want: ^2.48.1
+111 silly placeDep ROOT @vitejs/plugin-react@ OK for: daily-os@1.0.0 want: ^4.3.4
+112 silly placeDep ROOT autoprefixer@ OK for: daily-os@1.0.0 want: ^10.4.20
+113 silly placeDep ROOT better-sqlite3@ OK for: daily-os@1.0.0 want: ^11.8.1
+114 silly placeDep ROOT clsx@ OK for: daily-os@1.0.0 want: ^2.1.1
+115 silly placeDep ROOT cors@ OK for: daily-os@1.0.0 want: ^2.8.5
+116 silly placeDep ROOT dotenv@ OK for: daily-os@1.0.0 want: ^16.4.7
+117 silly placeDep ROOT express@ OK for: daily-os@1.0.0 want: ^4.21.2
+118 silly placeDep ROOT lucide-react@ OK for: daily-os@1.0.0 want: ^0.475.0
+119 silly placeDep ROOT node-cron@ OK for: daily-os@1.0.0 want: ^3.0.3
+120 silly placeDep ROOT nodemon@ OK for: daily-os@1.0.0 want: ^3.1.9
+121 silly placeDep ROOT postcss@ OK for: daily-os@1.0.0 want: ^8.5.2
+122 silly placeDep ROOT react@ OK for: daily-os@1.0.0 want: ^19.0.0
+123 silly placeDep ROOT react-dom@ OK for: daily-os@1.0.0 want: ^19.0.0
+124 silly placeDep ROOT recharts@ OK for: daily-os@1.0.0 want: ^2.15.1
+125 silly placeDep ROOT tailwind-merge@ OK for: daily-os@1.0.0 want: ^3.0.1
+126 silly placeDep ROOT tailwindcss@ OK for: daily-os@1.0.0 want: ^3.4.17
+127 silly placeDep ROOT vite@ OK for: daily-os@1.0.0 want: ^6.1.0
+128 verbose type system
+129 verbose stack FetchError: request to https://registry.npmjs.org/@google%2fgenai failed, reason: getaddrinfo ENOTFOUND registry.npmjs.org
+129 verbose stack     at ClientRequest.<anonymous> (/usr/local/Cellar/node/24.2.0/libexec/lib/node_modules/npm/node_modules/minipass-fetch/lib/index.js:130:14)
+129 verbose stack     at ClientRequest.emit (node:events:507:28)
+129 verbose stack     at emitErrorEvent (node:_http_client:104:11)
+129 verbose stack     at _destroy (node:_http_client:898:9)
+129 verbose stack     at onSocketNT (node:_http_client:918:5)
+129 verbose stack     at process.processTicksAndRejections (node:internal/process/task_queues:91:21)
+130 error code ENOTFOUND
+131 error syscall getaddrinfo
+132 error errno ENOTFOUND
+133 error network request to https://registry.npmjs.org/@google%2fgenai failed, reason: getaddrinfo ENOTFOUND registry.npmjs.org
+134 error network This is a problem related to network connectivity.
+134 error network In most cases you are behind a proxy or have bad network settings.
+134 error network
+134 error network If you are behind a proxy, please make sure that the
+134 error network 'proxy' config is set properly.  See: 'npm help config'
+135 silly unfinished npm timer reify 1789249290339
+136 silly unfinished npm timer reify:loadTrees 1789249290342
+137 verbose cwd /Users/Natech/Downloads/development/DailyOS
+138 verbose os Darwin 22.6.0
+139 verbose node v24.2.0
+140 verbose npm  v11.3.0
+141 verbose exit 1
+142 verbose code 1
+143 error A complete log of this run can be found in: /Users/Natech/Downloads/development/DailyOS/.npm-cache/_logs/2026-09-12T21_41_28_353Z-debug-0.log

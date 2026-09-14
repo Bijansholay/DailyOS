@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DailyOS — AI Personal Task & Life Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              dark: {
+                900: '#0B0F17',
+                800: '#111827',
+                700: '#1F2937',
+                600: '#374151',
+              },
+              brand: {
+                50: '#eef2ff',
+                400: '#818cf8',
+                500: '#6366f1',
+                600: '#4f46e5',
+                700: '#4338ca',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'Outfit', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
+    <style type="text/css">
+      body {
+        background-color: #0b0f17;
+        background-image: 
+          radial-gradient(at 10% 10%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+          radial-gradient(at 90% 90%, rgba(14, 165, 233, 0.06) 0px, transparent 50%),
+          radial-gradient(at 50% 50%, rgba(139, 92, 246, 0.04) 0px, transparent 50%);
+      }
+      .glass-card {
+        background: rgba(17, 24, 39, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .glass-card-hover {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .glass-card-hover:hover {
+        background: rgba(31, 41, 55, 0.85);
+        border-color: rgba(99, 102, 241, 0.35);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5);
+      }
+      .glass-input {
+        background: rgba(11, 15, 23, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #f3f4f6;
+      }
+      .glass-input:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+      }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: rgba(11, 15, 23, 0.5); }
+      ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.5); }
+    </style>
+    <!-- Import React 19, Lucide, Recharts via ESM -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19.0.0",
+          "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+          "lucide-react": "https://esm.sh/lucide-react@0.475.0?deps=react@19.0.0",
+          "recharts": "https://esm.sh/recharts@2.15.1?deps=react@19.0.0,react-dom@19.0.0"
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-dark-900 text-slate-100 font-sans antialiased selection:bg-brand-500 selection:text-white min-h-screen overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="module">
+      import React, { useState, useEffect } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import { 
+        LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
+        ChevronLeft, ChevronRight, Sparkles, Database, CheckCircle2, 
+        Clock, Plus, RefreshCw, XSquare, AlertCircle, Circle, MessageSquare, Send,
+        Zap, AlertTriangle, Flame, Trash2, X
+      } from 'lucide-react';
+      import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+      // Completion Modal Component
+      function CompletionModal({ isOpen, task, onClose, onSubmit }) {
+        const [actualMinutes, setActualMinutes] = useState(30);
+
+        useEffect(() => {
+          if (task) {
+            setActualMinutes(task.estimated_minutes || 30);
+          }
+        }, [task]);
+
+        if (!isOpen || !task) return null;
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          onSubmit(task.id, parseInt(actualMinutes, 10) || task.estimated_minutes || 30);
+        };
+
+        return React.createElement('div', { className: 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm' },
+          React.createElement('div', { className: 'relative w-full max-w-md glass-card rounded-2xl p-6 border border-brand-500/30 shadow-2xl' },
+            React.createElement('button', { onClick: onClose, className: 'absolute top-4 right-4 text-slate-400 hover:text-white transition-colors' },
+              React.createElement(X, { className: 'w-5 h-5' })
+            ),
+            React.createElement('div', { className: 'flex items-center gap-3 text-emerald-400 mb-4' },
+              React.createElement('div', { className: 'p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20' },
+                React.createElement(CheckCircle2, { className: 'w-6 h-6' })
+              ),
+              React.createElement('div', null,
+                React.createElement('h3', { className: 'font-semibold text-lg text-white' }, 'Complete Task'),
+                React.createElement('p', { className: 'text-xs text-slate-400' }, 'Log actual outcome for pattern learning')
+              )
+            ),
+            React.createElement('div', { className: 'bg-dark-800/80 p-3.5 rounded-xl mb-6 border border-slate-700/50' },
+              React.createElement('span', { className: 'text-xs text-brand-400 font-medium uppercase tracking-wider block mb-1' }, `${task.category} • ${task.priority} Priority`),
+              React.createElement('h4', { className: 'font-medium text-slate-200' }, task.title),
+              React.createElement('div', { className: 'flex items-center gap-2 mt-2 text-xs text-slate-400' },
+                React.createElement(Clock, { className: 'w-3.5 h-3.5' }),
+                React.createElement('span', null, 'Estimated: ', React.createElement('strong', { className: 'text-slate-300' }, `${task.estimated_minutes} min`))
+              )
+            ),
+            React.createElement('form', { onSubmit: handleSubmit, className: 'space-y-4' },
+              React.createElement('div', null,
+                React.createElement('label', { className: 'block text-sm font-medium text-slate-300 mb-2' }, 'Actual Minutes Spent'),
+                React.createElement('input', {
+                  type: 'number',
+                  min: '1',
+                  max: '1440',
+                  value: actualMinutes,
+                  onChange: (e) => setActualMinutes(e.target.value),
+                  className: 'w-full px-4 py-2.5 glass-input rounded-xl text-lg font-semibold text-brand-400',
+                  required: true,
+                  autoFocus: true
+                })
+              ),
+              React.createElement('div', { className: 'grid grid-cols-4 gap-2' },
+                [
+                  { label: 'Same', val: task.estimated_minutes || 30 },
+                  { label: '+15m', val: (task.estimated_minutes || 30) + 15 },
+                  { label: '+30m', val: (task.estimated_minutes || 30) + 30 },
+                  { label: '2x', val: (task.estimated_minutes || 30) * 2 }
+                ].map((preset, idx) => 
+                  React.createElement('button', {
+                    key: idx,
+                    type: 'button',
+                    onClick: () => setActualMinutes(preset.val),
+                    className: 'px-2 py-1.5 bg-slate-800/60 hover:bg-brand-500/20 border border-slate-700 rounded-lg text-xs font-medium text-slate-300'
+                  }, `${preset.label} (${preset.val}m)`)
+                )
+              ),
+              React.createElement('div', { className: 'flex items-center justify-end gap-3 pt-2' },
+                React.createElement('button', { type: 'button', onClick: onClose, className: 'px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200' }, 'Cancel'),
+                React.createElement('button', { type: 'submit', className: 'px-5 py-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-medium text-sm rounded-xl shadow-lg shadow-brand-500/20' }, 'Save & Finish')
+              )
+            )
+          )
+        );
+      }
+
+      // Today View Component
+      function TodayView({ selectedDate, tasks, events, dailyLog, onStatusChange, onAddTask, onAddEvent, onGenerateAiBrief }) {
+        const [showTaskForm, setShowTaskForm] = useState(false);
+        const [showEventForm, setShowEventForm] = useState(false);
+        const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+
+        const [taskTitle, setTaskTitle] = useState('');
+        const [taskCategory, setTaskCategory] = useState('work');
+        const [taskEst, setTaskEst] = useState('30');
+        const [taskPriority, setTaskPriority] = useState('medium');
+        const [taskTime, setTaskTime] = useState('');
+
+        const [eventTitle, setEventTitle] = useState('');
+        const [eventTime, setEventTime] = useState('09:00');
+        const [eventCategory, setEventCategory] = useState('meeting');
+
+        let aiSummary = null;
+        if (dailyLog?.ai_summary) {
+          try {
+            aiSummary = typeof dailyLog.ai_summary === 'string' ? JSON.parse(dailyLog.ai_summary) : dailyLog.ai_summary;
+          } catch (e) {
+            aiSummary = { insight: dailyLog.ai_summary, schedule: [] };
+          }
+        }
+
+        const aiScheduleMap = {};
+        if (aiSummary?.schedule) {
+          aiSummary.schedule.forEach(item => {
+            if (item.task_id) aiScheduleMap[item.task_id] = item;
+          });
+        }
+
+        const handleTaskSubmit = (e) => {
+          e.preventDefault();
+          if (!taskTitle.trim()) return;
+          onAddTask({
+            title: taskTitle.trim(),
+            category: taskCategory,
+            estimated_minutes: parseInt(taskEst, 10) || 30,
+            priority: taskPriority,
+            scheduled_for: selectedDate,
+            scheduled_time: taskTime || null
+          });
+          setTaskTitle('');
+          setShowTaskForm(false);
+        };
+
+        const handleEventSubmit = (e) => {
+          e.preventDefault();
+          if (!eventTitle.trim()) return;
+          onAddEvent({
+            title: eventTitle.trim(),
+            event_date: selectedDate,
+            event_time: eventTime || null,
+            category: eventCategory
+          });
+          setEventTitle('');
+          setShowEventForm(false);
+        };
+
+        const handleTriggerAi = async () => {
+          setIsGeneratingAi(true);
+          await onGenerateAiBrief();
+          setIsGeneratingAi(false);
+        };
+
+        const categoryColors = {
+          work: 'border-indigo-500/40 text-indigo-400 bg-indigo-500/10',
+          school: 'border-violet-500/40 text-violet-400 bg-violet-500/10',
+          personal: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10',
+          health: 'border-rose-500/40 text-rose-400 bg-rose-500/10',
+          meeting: 'border-amber-500/40 text-amber-400 bg-amber-500/10',
+        };
+
+        return React.createElement('div', { className: 'space-y-6' },
+          /* AI BRIEFING BANNER */
+          React.createElement('div', { className: 'glass-card rounded-2xl p-6 relative overflow-hidden border border-brand-500/30' },
+            React.createElement('div', { className: 'flex flex-col md:flex-row md:items-center justify-between gap-4' },
+              React.createElement('div', { className: 'flex items-start gap-4' },
+                React.createElement('div', { className: 'p-3 bg-gradient-to-br from-brand-500/20 to-violet-500/20 rounded-xl border border-brand-500/30 text-brand-400' },
+                  React.createElement(Sparkles, { className: 'w-6 h-6 animate-pulse' })
+                ),
+                React.createElement('div', null,
+                  React.createElement('div', { className: 'flex items-center gap-2' },
+                    React.createElement('h2', { className: 'font-semibold text-lg text-white' }, 'Daily AI Briefing'),
+                    React.createElement('span', { className: 'px-2 py-0.5 bg-brand-500/20 text-brand-300 rounded-md text-[10px] uppercase font-bold tracking-wider' }, 'Gemini AI')
+                  ),
+                  React.createElement('p', { className: 'text-slate-300 text-sm mt-1 leading-relaxed max-w-2xl' },
+                    aiSummary?.insight || "Click below to compute today's AI-optimized task sequence and behavioral productivity reflection based on historical performance."
+                  )
+                )
+              ),
+              React.createElement('button', {
+                onClick: handleTriggerAi,
+                disabled: isGeneratingAi,
+                className: 'flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 disabled:opacity-50 text-white font-medium text-sm rounded-xl shadow-lg shadow-brand-500/20 shrink-0'
+              },
+                React.createElement(RefreshCw, { className: `w-4 h-4 ${isGeneratingAi ? 'animate-spin' : ''}` }),
+                React.createElement('span', null, isGeneratingAi ? 'Analyzing Data...' : 'Generate Daily Brief')
+              )
+            )
+          ),
+
+          /* GRID LAYOUT */
+          React.createElement('div', { className: 'grid grid-cols-1 lg:grid-cols-3 gap-6' },
+            /* TASKS LIST (2 COLS) */
+            React.createElement('div', { className: 'lg:col-span-2 space-y-4' },
+              React.createElement('div', { className: 'flex items-center justify-between' },
+                React.createElement('div', { className: 'flex items-center gap-2' },
+                  React.createElement('h3', { className: 'font-semibold text-slate-200 text-lg' }, "Today's Tasks"),
+                  React.createElement('span', { className: 'px-2.5 py-0.5 bg-slate-800 text-slate-400 text-xs rounded-full font-medium' }, tasks.length)
+                ),
+                React.createElement('button', {
+                  onClick: () => setShowTaskForm(!showTaskForm),
+                  className: 'flex items-center gap-1.5 px-3 py-1.5 bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 rounded-xl text-xs font-medium border border-brand-500/30'
+                },
+                  React.createElement(Plus, { className: 'w-3.5 h-3.5' }),
+                  React.createElement('span', null, 'Add Task')
+                )
+              ),
+
+              showTaskForm && React.createElement('form', { onSubmit: handleTaskSubmit, className: 'glass-card rounded-xl p-4 space-y-3 border border-brand-500/30' },
+                React.createElement('input', {
+                  type: 'text',
+                  placeholder: 'What do you need to accomplish?',
+                  value: taskTitle,
+                  onChange: (e) => setTaskTitle(e.target.value),
+                  className: 'w-full px-3 py-2 glass-input rounded-lg text-sm',
+                  required: true,
+                  autoFocus: true
+                }),
+                React.createElement('div', { className: 'grid grid-cols-2 md:grid-cols-4 gap-2' },
+                  React.createElement('select', { value: taskCategory, onChange: (e) => setTaskCategory(e.target.value), className: 'px-2 py-1.5 glass-input rounded-lg text-xs' },
+                    React.createElement('option', { value: 'work' }, 'Work'),
+                    React.createElement('option', { value: 'school' }, 'School'),
+                    React.createElement('option', { value: 'personal' }, 'Personal'),
+                    React.createElement('option', { value: 'health' }, 'Health')
+                  ),
+                  React.createElement('select', { value: taskEst, onChange: (e) => setTaskEst(e.target.value), className: 'px-2 py-1.5 glass-input rounded-lg text-xs' },
+                    React.createElement('option', { value: '15' }, '15 min'),
+                    React.createElement('option', { value: '30' }, '30 min'),
+                    React.createElement('option', { value: '45' }, '45 min'),
+                    React.createElement('option', { value: '60' }, '60 min'),
+                    React.createElement('option', { value: '90' }, '90 min')
+                  ),
+                  React.createElement('select', { value: taskPriority, onChange: (e) => setTaskPriority(e.target.value), className: 'px-2 py-1.5 glass-input rounded-lg text-xs' },
+                    React.createElement('option', { value: 'low' }, 'Low Priority'),
+                    React.createElement('option', { value: 'medium' }, 'Medium Priority'),
+                    React.createElement('option', { value: 'high' }, 'High Priority')
+                  ),
+                  React.createElement('input', { type: 'time', value: taskTime, onChange: (e) => setTaskTime(e.target.value), className: 'px-2 py-1.5 glass-input rounded-lg text-xs' })
+                ),
+                React.createElement('div', { className: 'flex justify-end gap-2 pt-1' },
+                  React.createElement('button', { type: 'button', onClick: () => setShowTaskForm(false), className: 'px-3 py-1.5 text-xs text-slate-400 hover:text-white' }, 'Cancel'),
+                  React.createElement('button', { type: 'submit', className: 'px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-medium' }, 'Save Task')
+                )
+              ),
+
+              tasks.length === 0 ? React.createElement('div', { className: 'glass-card rounded-xl p-8 text-center text-slate-400 border border-slate-800' },
+                React.createElement('p', { className: 'text-sm' }, 'No tasks scheduled for today.'),
+                React.createElement('button', { onClick: () => setShowTaskForm(true), className: 'mt-3 text-xs text-brand-400 font-medium hover:underline' }, '+ Add your first task')
+              ) : React.createElement('div', { className: 'space-y-3' },
+                tasks.map(task => {
+                  const aiSuggestion = aiScheduleMap[task.id];
+                  const catClass = categoryColors[task.category] || categoryColors.personal;
+                  const isDone = task.status === 'done';
+                  const isSkipped = task.status === 'skipped';
+                  const isLate = task.status === 'late';
+
+                  return React.createElement('div', {
+                    key: task.id,
+                    className: `glass-card glass-card-hover rounded-xl p-4 flex items-center justify-between gap-4 border ${
+                      isDone ? 'border-emerald-500/30 opacity-75' : isSkipped ? 'border-slate-800 opacity-50' : 'border-slate-800'
+                    }`
+                  },
+                    React.createElement('div', { className: 'flex items-start gap-3.5 min-w-0' },
+                      React.createElement('button', {
+                        onClick: () => onStatusChange(task, isDone ? 'pending' : 'done'),
+                        className: 'mt-0.5 text-slate-400 hover:text-emerald-400 shrink-0'
+                      },
+                        isDone ? React.createElement(CheckCircle2, { className: 'w-5 h-5 text-emerald-400' }) : React.createElement(Circle, { className: 'w-5 h-5' })
+                      ),
+                      React.createElement('div', { className: 'min-w-0 space-y-1' },
+                        React.createElement('div', { className: 'flex items-center gap-2 flex-wrap' },
+                          React.createElement('span', { className: `px-2 py-0.5 rounded-md text-[10px] font-semibold border ${catClass}` }, task.category),
+                          React.createElement('span', { className: `text-[10px] font-semibold uppercase ${task.priority === 'high' ? 'text-rose-400' : task.priority === 'medium' ? 'text-amber-400' : 'text-slate-400'}` }, task.priority),
+                          aiSuggestion?.suggested_time && React.createElement('span', { className: 'flex items-center gap-1 px-2 py-0.5 bg-violet-500/10 border border-violet-500/20 text-violet-300 text-[10px] rounded-md font-medium' },
+                            React.createElement(Sparkles, { className: 'w-2.5 h-2.5' }),
+                            `AI Suggest: ${aiSuggestion.suggested_time}`
+                          )
+                        ),
+                        React.createElement('h4', { className: `font-medium text-slate-200 text-sm truncate ${isDone ? 'line-through text-slate-400' : ''}` }, task.title),
+                        React.createElement('div', { className: 'flex items-center gap-3 text-xs text-slate-400' },
+                          React.createElement('span', { className: 'flex items-center gap-1' },
+                            React.createElement(Clock, { className: 'w-3 h-3 text-slate-500' }),
+                            `Est: ${task.estimated_minutes}m`
+                          ),
+                          task.actual_minutes !== null && React.createElement('span', { className: 'text-emerald-400 font-medium' }, `Actual: ${task.actual_minutes}m`),
+                          task.scheduled_time && React.createElement('span', null, `Time: ${task.scheduled_time}`)
+                        )
+                      )
+                    ),
+                    React.createElement('div', { className: 'flex items-center gap-1 shrink-0' },
+                      !isDone && React.createElement(React.Fragment, null,
+                        React.createElement('button', {
+                          onClick: () => onStatusChange(task, 'skipped'),
+                          title: 'Mark Skipped',
+                          className: `p-1.5 rounded-lg border text-xs ${isSkipped ? 'bg-slate-700 text-slate-300' : 'bg-dark-800 text-slate-500 hover:text-amber-400'}`
+                        }, React.createElement(XSquare, { className: 'w-4 h-4' })),
+                        React.createElement('button', {
+                          onClick: () => onStatusChange(task, 'late'),
+                          title: 'Mark Late',
+                          className: `p-1.5 rounded-lg border text-xs ${isLate ? 'bg-rose-500/20 text-rose-300' : 'bg-dark-800 text-slate-500 hover:text-rose-400'}`
+                        }, React.createElement(AlertCircle, { className: 'w-4 h-4' }))
+                      )
+                    )
+                  );
+                })
+              )
+            ),
+
+            /* EVENTS LIST (1 COL) */
+            React.createElement('div', { className: 'space-y-4' },
+              React.createElement('div', { className: 'flex items-center justify-between' },
+                React.createElement('div', { className: 'flex items-center gap-2' },
+                  React.createElement('h3', { className: 'font-semibold text-slate-200 text-lg' }, 'Scheduled Events'),
+                  React.createElement('span', { className: 'px-2.5 py-0.5 bg-slate-800 text-slate-400 text-xs rounded-full font-medium' }, events.length)
+                ),
+                React.createElement('button', {
+                  onClick: () => setShowEventForm(!showEventForm),
+                  className: 'flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium'
+                },
+                  React.createElement(Plus, { className: 'w-3.5 h-3.5' }),
+                  React.createElement('span', null, 'Event')
+                )
+              ),
+
+              showEventForm && React.createElement('form', { onSubmit: handleEventSubmit, className: 'glass-card rounded-xl p-4 space-y-3 border border-slate-700' },
+                React.createElement('input', {
+                  type: 'text',
+                  placeholder: 'Event Title',
+                  value: eventTitle,
+                  onChange: (e) => setEventTitle(e.target.value),
+                  className: 'w-full px-3 py-2 glass-input rounded-lg text-sm',
+                  required: true,
+                  autoFocus: true
+                }),
+                React.createElement('div', { className: 'grid grid-cols-2 gap-2' },
+                  React.createElement('input', { type: 'time', value: eventTime, onChange: (e) => setEventTime(e.target.value), className: 'px-2 py-1.5 glass-input rounded-lg text-xs' }),
+                  React.createElement('select', { value: eventCategory, onChange: (e) => setEventCategory(e.target.value), className: 'px-2 py-1.5 glass-input rounded-lg text-xs' },
+                    React.createElement('option', { value: 'meeting' }, 'Meeting'),
+                    React.createElement('option', { value: 'personal' }, 'Personal'),
+                    React.createElement('option', { value: 'work' }, 'Work')
+                  )
+                ),
+                React.createElement('div', { className: 'flex justify-end gap-2 pt-1' },
+                  React.createElement('button', { type: 'button', onClick: () => setShowEventForm(false), className: 'px-3 py-1 text-xs text-slate-400 hover:text-white' }, 'Cancel'),
+                  React.createElement('button', { type: 'submit', className: 'px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium' }, 'Add Event')
+                )
+              ),
+
+              events.length === 0 ? React.createElement('div', { className: 'glass-card rounded-xl p-6 text-center text-slate-400 border border-slate-800' },
+                React.createElement('p', { className: 'text-xs' }, 'No events scheduled today.')
+              ) : React.createElement('div', { className: 'space-y-2.5' },
+                events.map(evt => React.createElement('div', { key: evt.id, className: 'glass-card rounded-xl p-3.5 border border-slate-800 flex items-center gap-3' },
+                  React.createElement('div', { className: 'p-2 bg-amber-500/10 text-amber-400 rounded-lg shrink-0' },
+                    React.createElement(CalendarIcon, { className: 'w-4 h-4' })
+                  ),
+                  React.createElement('div', { className: 'min-w-0 flex-1' },
+                    React.createElement('h5', { className: 'font-medium text-slate-200 text-xs truncate' }, evt.title),
+                    React.createElement('p', { className: 'text-[11px] text-slate-400' }, `${evt.event_time || 'All Day'} • ${evt.category}`)
+                  )
+                ))
+              )
+            )
+          )
+        );
+      }
+
+      // Patterns View Component
+      function PatternsView({ pattern, onRecomputePattern }) {
+        const [isRecomputing, setIsRecomputing] = useState(false);
+
+        const handleRecompute = async () => {
+          setIsRecomputing(true);
+          await onRecomputePattern();
+          setIsRecomputing(false);
+        };
+
+        const hourlyData = [];
+        if (pattern?.most_productive_hours?.hourly_distribution) {
+          Object.entries(pattern.most_productive_hours.hourly_distribution).forEach(([hour, count]) => {
+            hourlyData.push({ hour, count });
+          });
+        } else {
+          for (let i = 0; i < 24; i++) {
+            hourlyData.push({ hour: `${i.toString().padStart(2, '0')}:00`, count: 0 });
+          }
+        }
+
+        const peakStart = pattern?.most_productive_hours?.start || '09:00';
+        const peakEnd = pattern?.most_productive_hours?.end || '12:00';
+        const avgRatio = pattern?.avg_completion_ratio || 1.0;
+        const ratioPercent = Math.round((avgRatio - 1) * 100);
+
+        return React.createElement('div', { className: 'space-y-6' },
+          React.createElement('div', { className: 'flex flex-col md:flex-row md:items-center justify-between gap-4' },
+            React.createElement('div', null,
+              React.createElement('h2', { className: 'font-bold text-xl text-white' }, 'Behavioral Patterns & Analytics'),
+              React.createElement('p', { className: 'text-xs text-slate-400 mt-0.5' }, 'Computed from historical task outcomes over the last 30 days')
+            ),
+            React.createElement('button', {
+              onClick: handleRecompute,
+              disabled: isRecomputing,
+              className: 'flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-medium border border-slate-700 shrink-0'
+            },
+              React.createElement(RefreshCw, { className: `w-3.5 h-3.5 ${isRecomputing ? 'animate-spin' : ''}` }),
+              React.createElement('span', null, isRecomputing ? 'Recomputing...' : 'Recompute Patterns')
+            )
+          ),
+
+          /* METRICS ROW */
+          React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-4' },
+            React.createElement('div', { className: 'glass-card rounded-2xl p-5 border border-brand-500/20' },
+              React.createElement('div', { className: 'flex items-center gap-3 text-brand-400 mb-3' },
+                React.createElement('div', { className: 'p-2 bg-brand-500/10 rounded-xl border border-brand-500/20' }, React.createElement(Zap, { className: 'w-5 h-5' })),
+                React.createElement('div', null,
+                  React.createElement('h4', { className: 'font-semibold text-sm text-slate-200' }, 'Peak Productive Hours'),
+                  React.createElement('p', { className: 'text-[11px] text-slate-400' }, 'Highest task completion density')
+                )
+              ),
+              React.createElement('span', { className: 'font-bold text-2xl text-white tracking-tight' }, `${peakStart} – ${peakEnd}`)
+            ),
+            React.createElement('div', { className: 'glass-card rounded-2xl p-5 border border-violet-500/20' },
+              React.createElement('div', { className: 'flex items-center gap-3 text-violet-400 mb-3' },
+                React.createElement('div', { className: 'p-2 bg-violet-500/10 rounded-xl border border-violet-500/20' }, React.createElement(Clock, { className: 'w-5 h-5' })),
+                React.createElement('div', null,
+                  React.createElement('h4', { className: 'font-semibold text-sm text-slate-200' }, 'Time Estimation Ratio'),
+                  React.createElement('p', { className: 'text-[11px] text-slate-400' }, 'Actual vs Estimated ratio')
+                )
+              ),
+              React.createElement('div', { className: 'flex items-baseline gap-2' },
+                React.createElement('span', { className: 'font-bold text-2xl text-white tracking-tight' }, `${avgRatio}x`),
+                React.createElement('span', { className: `text-xs font-semibold ${ratioPercent > 0 ? 'text-amber-400' : 'text-emerald-400'}` }, ratioPercent > 0 ? `+${ratioPercent}% actual time` : 'On target')
+              )
+            ),
+            React.createElement('div', { className: 'glass-card rounded-2xl p-5 border border-rose-500/20' },
+              React.createElement('div', { className: 'flex items-center gap-3 text-rose-400 mb-3' },
+                React.createElement('div', { className: 'p-2 bg-rose-500/10 rounded-xl border border-rose-500/20' }, React.createElement(AlertTriangle, { className: 'w-5 h-5' })),
+                React.createElement('div', null,
+                  React.createElement('h4', { className: 'font-semibold text-sm text-slate-200' }, 'Highest Skip Category'),
+                  React.createElement('p', { className: 'text-[11px] text-slate-400' }, 'Category needing breakdown')
+                )
+              ),
+              React.createElement('span', { className: 'font-bold text-2xl text-rose-300 capitalize tracking-tight' }, pattern?.worst_category || 'None')
+            )
+          ),
+
+          /* CHART */
+          React.createElement('div', { className: 'glass-card rounded-2xl p-6 border border-slate-800 space-y-4' },
+            React.createElement('h3', { className: 'font-semibold text-slate-200 text-base' }, 'Hourly Completion Distribution'),
+            React.createElement('div', { className: 'h-64 w-full pt-4' },
+              React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
+                React.createElement(BarChart, { data: hourlyData },
+                  React.createElement(XAxis, { dataKey: 'hour', stroke: '#64748b', fontSize: 11, tickLine: false, interval: 2 }),
+                  React.createElement(YAxis, { stroke: '#64748b', fontSize: 11, tickLine: false }),
+                  React.createElement(Tooltip, { contentStyle: { backgroundColor: '#111827', borderColor: '#374151', borderRadius: '12px', color: '#f3f4f6', fontSize: '12px' } }),
+                  React.createElement(Bar, { dataKey: 'count', radius: [4, 4, 0, 0] },
+                    hourlyData.map((entry, index) => {
+                      const hourVal = parseInt(entry.hour.split(':')[0], 10);
+                      const peakStartHour = parseInt(peakStart.split(':')[0], 10);
+                      const isPeak = hourVal >= peakStartHour && hourVal < (peakStartHour + 3);
+                      return React.createElement(Cell, { key: `cell-${index}`, fill: isPeak ? '#6366f1' : '#334155' });
+                    })
+                  )
+                )
+              )
+            )
+          ),
+
+          /* STREAK FLAGS */
+          pattern?.skip_streak_flags && pattern.skip_streak_flags.length > 0 && React.createElement('div', { className: 'glass-card rounded-2xl p-6 border border-amber-500/30 space-y-3' },
+            React.createElement('div', { className: 'flex items-center gap-2 text-amber-400' },
+              React.createElement(AlertTriangle, { className: 'w-5 h-5' }),
+              React.createElement('h3', { className: 'font-semibold text-white text-base' }, 'Skip Streak Flags')
+            ),
+            React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-3' },
+              pattern.skip_streak_flags.map((flag, idx) => 
+                React.createElement('div', { key: idx, className: 'bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3' },
+                  React.createElement(Flame, { className: 'w-5 h-5 text-amber-400 shrink-0 mt-0.5' }),
+                  React.createElement('div', null,
+                    React.createElement('h4', { className: 'font-semibold text-sm text-slate-200 capitalize' }, `${flag.category} Streak`),
+                    React.createElement('p', { className: 'text-xs text-amber-300/90 mt-0.5' }, flag.message)
+                  )
+                )
+              )
+            )
+          )
+        );
+      }
+
+      // Backlog View Component
+      function BacklogView({ backlogTasks, onAddTask, onScheduleTask, onDeleteTask }) {
+        const [showForm, setShowForm] = useState(false);
+        const [title, setTitle] = useState('');
+        const [category, setCategory] = useState('work');
+        const [estMinutes, setEstMinutes] = useState('30');
+        const [priority, setPriority] = useState('medium');
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        const tomorrowObj = new Date();
+        tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+        const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          if (!title.trim()) return;
+          onAddTask({
+            title: title.trim(),
+            category,
+            estimated_minutes: parseInt(estMinutes, 10) || 30,
+            priority,
+            scheduled_for: null
+          });
+          setTitle('');
+          setShowForm(false);
+        };
+
+        return React.createElement('div', { className: 'space-y-6' },
+          React.createElement('div', { className: 'flex flex-col md:flex-row md:items-center justify-between gap-4' },
+            React.createElement('div', null,
+              React.createElement('h2', { className: 'font-bold text-xl text-white' }, 'Backlog'),
+              React.createElement('p', { className: 'text-xs text-slate-400 mt-0.5' }, 'Unscheduled tasks queued for future daily briefings')
+            ),
+            React.createElement('button', {
+              onClick: () => setShowForm(!showForm),
+              className: 'flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-medium shadow-lg shadow-brand-500/20 shrink-0'
+            },
+              React.createElement(Plus, { className: 'w-4 h-4' }),
+              React.createElement('span', null, 'Add to Backlog')
+            )
+          ),
+
+          showForm && React.createElement('form', { onSubmit: handleSubmit, className: 'glass-card rounded-xl p-5 space-y-4 border border-brand-500/30' },
+            React.createElement('input', {
+              type: 'text',
+              placeholder: 'Task Title...',
+              value: title,
+              onChange: (e) => setTitle(e.target.value),
+              className: 'w-full px-4 py-2.5 glass-input rounded-xl text-sm',
+              required: true,
+              autoFocus: true
+            }),
+            React.createElement('div', { className: 'grid grid-cols-3 gap-3' },
+              React.createElement('select', { value: category, onChange: (e) => setCategory(e.target.value), className: 'px-3 py-2 glass-input rounded-xl text-xs' },
+                React.createElement('option', { value: 'work' }, 'Work'),
+                React.createElement('option', { value: 'school' }, 'School'),
+                React.createElement('option', { value: 'personal' }, 'Personal'),
+                React.createElement('option', { value: 'health' }, 'Health')
+              ),
+              React.createElement('select', { value: estMinutes, onChange: (e) => setEstMinutes(e.target.value), className: 'px-3 py-2 glass-input rounded-xl text-xs' },
+                React.createElement('option', { value: '15' }, '15 min'),
+                React.createElement('option', { value: '30' }, '30 min'),
+                React.createElement('option', { value: '60' }, '60 min')
+              ),
+              React.createElement('select', { value: priority, onChange: (e) => setPriority(e.target.value), className: 'px-3 py-2 glass-input rounded-xl text-xs' },
+                React.createElement('option', { value: 'low' }, 'Low Priority'),
+                React.createElement('option', { value: 'medium' }, 'Medium Priority'),
+                React.createElement('option', { value: 'high' }, 'High Priority')
+              )
+            ),
+            React.createElement('div', { className: 'flex justify-end gap-2 pt-2' },
+              React.createElement('button', { type: 'button', onClick: () => setShowForm(false), className: 'px-4 py-2 text-xs text-slate-400' }, 'Cancel'),
+              React.createElement('button', { type: 'submit', className: 'px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-medium' }, 'Create Task')
+            )
+          ),
+
+          backlogTasks.length === 0 ? React.createElement('div', { className: 'glass-card rounded-2xl p-12 text-center border border-slate-800 space-y-3' },
+            React.createElement(Inbox, { className: 'w-8 h-8 text-slate-500 mx-auto' }),
+            React.createElement('p', { className: 'text-slate-400 text-sm font-medium' }, 'Your backlog is empty!')
+          ) : React.createElement('div', { className: 'space-y-3' },
+            backlogTasks.map(task => 
+              React.createElement('div', { key: task.id, className: 'glass-card glass-card-hover rounded-xl p-4 flex items-center justify-between gap-4 border border-slate-800' },
+                React.createElement('div', { className: 'space-y-1.5' },
+                  React.createElement('span', { className: 'px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-semibold uppercase rounded-md border border-slate-700' }, task.category),
+                  React.createElement('h4', { className: 'font-medium text-slate-200 text-sm' }, task.title)
+                ),
+                React.createElement('div', { className: 'flex items-center gap-2' },
+                  React.createElement('button', {
+                    onClick: () => onScheduleTask(task.id, todayStr),
+                    className: 'px-3 py-1.5 bg-brand-500/10 text-brand-300 text-xs font-medium rounded-lg border border-brand-500/30 flex items-center gap-1'
+                  }, React.createElement(CalendarIcon, { className: 'w-3.5 h-3.5' }), React.createElement('span', null, 'Today')),
+                  React.createElement('button', {
+                    onClick: () => onScheduleTask(task.id, tomorrowStr),
+                    className: 'px-3 py-1.5 bg-slate-800 text-slate-300 text-xs font-medium rounded-lg border border-slate-700'
+                  }, 'Tomorrow'),
+                  React.createElement('button', {
+                    onClick: () => onDeleteTask(task.id),
+                    className: 'p-1.5 text-slate-500 hover:text-rose-400'
+                  }, React.createElement(Trash2, { className: 'w-4 h-4' }))
+                )
+              )
+            )
+          )
+        );
+      }
+
+      // Log History View Component
+      function LogHistoryView({ selectedDate, onSelectDate, dailyLog, onSaveReflection }) {
+        const [moodNote, setMoodNote] = useState('');
+        const [isSaving, setIsSaving] = useState(false);
+
+        useEffect(() => {
+          setMoodNote(dailyLog?.mood_note || '');
+        }, [dailyLog]);
+
+        const handleReflectionSubmit = async (e) => {
+          e.preventDefault();
+          setIsSaving(true);
+          await onSaveReflection(selectedDate, moodNote);
+          setIsSaving(false);
+        };
+
+        const calendarDays = [];
+        const curr = new Date(selectedDate);
+        for (let i = -6; i <= 7; i++) {
+          const d = new Date(curr);
+          d.setDate(d.getDate() + i);
+          calendarDays.push(d.toISOString().split('T')[0]);
+        }
+
+        let aiSummary = null;
+        if (dailyLog?.ai_summary) {
+          try {
+            aiSummary = typeof dailyLog.ai_summary === 'string' ? JSON.parse(dailyLog.ai_summary) : dailyLog.ai_summary;
+          } catch (e) {
+            aiSummary = { insight: dailyLog.ai_summary };
+          }
+        }
+
+        return React.createElement('div', { className: 'space-y-6' },
+          React.createElement('h2', { className: 'font-bold text-xl text-white' }, 'Log History & Reflections'),
+
+          /* RIBBON */
+          React.createElement('div', { className: 'glass-card rounded-2xl p-4 border border-slate-800 flex items-center gap-2 overflow-x-auto' },
+            calendarDays.map(dateStr => {
+              const isSelected = dateStr === selectedDate;
+              const dateObj = new Date(dateStr);
+              return React.createElement('button', {
+                key: dateStr,
+                onClick: () => onSelectDate(dateStr),
+                className: `flex-1 min-w-[64px] py-3 px-2 rounded-xl text-center border ${isSelected ? 'bg-brand-600 text-white border-brand-500 font-bold' : 'bg-dark-800/80 text-slate-400 border-slate-700/50'}`
+              },
+                React.createElement('span', { className: 'text-[10px] uppercase block' }, dateObj.toLocaleDateString('en-US', { weekday: 'short' })),
+                React.createElement('span', { className: 'text-base font-semibold block' }, dateObj.getDate())
+              );
+            })
+          ),
+
+          React.createElement('div', { className: 'grid grid-cols-1 lg:grid-cols-3 gap-6' },
+            React.createElement('div', { className: 'lg:col-span-2 space-y-6' },
+              React.createElement('div', { className: 'grid grid-cols-3 gap-4' },
+                React.createElement('div', { className: 'glass-card rounded-2xl p-4 border border-emerald-500/20 text-center' },
+                  React.createElement(CheckCircle2, { className: 'w-5 h-5 text-emerald-400 mx-auto mb-1' }),
+                  React.createElement('span', { className: 'font-bold text-2xl text-white' }, dailyLog?.tasks_completed || 0),
+                  React.createElement('p', { className: 'text-[11px] text-slate-400' }, 'Completed')
+                ),
+                React.createElement('div', { className: 'glass-card rounded-2xl p-4 border border-amber-500/20 text-center' },
+                  React.createElement(XSquare, { className: 'w-5 h-5 text-amber-400 mx-auto mb-1' }),
+                  React.createElement('span', { className: 'font-bold text-2xl text-white' }, dailyLog?.tasks_skipped || 0),
+                  React.createElement('p', { className: 'text-[11px] text-slate-400' }, 'Skipped')
+                ),
+                React.createElement('div', { className: 'glass-card rounded-2xl p-4 border border-rose-500/20 text-center' },
+                  React.createElement(AlertCircle, { className: 'w-5 h-5 text-rose-400 mx-auto mb-1' }),
+                  React.createElement('span', { className: 'font-bold text-2xl text-white' }, dailyLog?.tasks_late || 0),
+                  React.createElement('p', { className: 'text-[11px] text-slate-400' }, 'Late')
+                )
+              ),
+
+              React.createElement('div', { className: 'glass-card rounded-2xl p-6 border border-slate-800 space-y-4' },
+                React.createElement('h3', { className: 'font-semibold text-base text-slate-200' }, 'Daily Reflection & Mood Note'),
+                React.createElement('form', { onSubmit: handleReflectionSubmit, className: 'space-y-3' },
+                  React.createElement('textarea', {
+                    rows: 3,
+                    placeholder: 'How did today feel? Any friction, wins, or reflections on energy levels?',
+                    value: moodNote,
+                    onChange: (e) => setMoodNote(e.target.value),
+                    className: 'w-full px-4 py-3 glass-input rounded-xl text-sm'
+                  }),
+                  React.createElement('div', { className: 'flex justify-end' },
+                    React.createElement('button', { type: 'submit', disabled: isSaving, className: 'flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-medium' },
+                      React.createElement(Send, { className: 'w-3.5 h-3.5' }),
+                      React.createElement('span', null, isSaving ? 'Saving...' : 'Save Reflection')
+                    )
+                  )
+                )
+              )
+            ),
+
+            React.createElement('div', { className: 'glass-card rounded-2xl p-6 border border-brand-500/20 space-y-4' },
+              React.createElement('div', { className: 'flex items-center gap-2 text-brand-400' },
+                React.createElement(Sparkles, { className: 'w-5 h-5' }),
+                React.createElement('h3', { className: 'font-semibold text-white text-base' }, 'Historical AI Briefing')
+              ),
+              aiSummary ? React.createElement('div', { className: 'bg-dark-800/80 p-3.5 rounded-xl border border-slate-700/50 text-xs text-slate-200' }, aiSummary.insight)
+                : React.createElement('p', { className: 'text-xs text-slate-400' }, 'No AI summary generated for this date.')
+            )
+          )
+        );
+      }
+
+      // App Root
+      function App() {
+        const [activeView, setActiveView] = useState('today');
+        const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+        const [tasks, setTasks] = useState([]);
+        const [backlogTasks, setBacklogTasks] = useState([]);
+        const [events, setEvents] = useState([]);
+        const [dailyLog, setDailyLog] = useState(null);
+        const [pattern, setPattern] = useState(null);
+        const [dbMode, setDbMode] = useState('json');
+
+        const [completionModalTask, setCompletionModalTask] = useState(null);
+        const [toastMessage, setToastMessage] = useState(null);
+
+        const showToast = (msg) => {
+          setToastMessage(msg);
+          setTimeout(() => setToastMessage(null), 3000);
+        };
+
+        useEffect(() => {
+          fetchTodayData();
+          fetchBacklogTasks();
+          fetchPattern();
+        }, [selectedDate, activeView]);
+
+        const fetchTodayData = async () => {
+          try {
+            const [tasksRes, eventsRes, logRes] = await Promise.all([
+              fetch(`/api/tasks?date=${selectedDate}`),
+              fetch(`/api/events?from=${selectedDate}&to=${selectedDate}`),
+              fetch(`/api/daily-log/${selectedDate}`)
+            ]);
+            if (tasksRes.ok) setTasks(await tasksRes.json());
+            if (eventsRes.ok) setEvents(await eventsRes.json());
+            if (logRes.ok) setDailyLog(await logRes.json());
+          } catch (e) {}
+        };
+
+        const fetchBacklogTasks = async () => {
+          try {
+            const res = await fetch('/api/tasks?backlog=true');
+            if (res.ok) setBacklogTasks(await res.json());
+          } catch (e) {}
+        };
+
+        const fetchPattern = async () => {
+          try {
+            const res = await fetch('/api/patterns');
+            if (res.ok) setPattern(await res.json());
+          } catch (e) {}
+        };
+
+        const handleAddTask = async (taskData) => {
+          const res = await fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taskData)
+          });
+          if (res.ok) {
+            showToast('Task added successfully');
+            fetchTodayData();
+            fetchBacklogTasks();
+          }
+        };
+
+        const handleStatusChange = (task, newStatus) => {
+          if (newStatus === 'done') {
+            setCompletionModalTask(task);
+          } else {
+            updateTaskStatus(task.id, { status: newStatus });
+          }
+        };
+
+        const handleCompletionSubmit = async (taskId, actualMinutes) => {
+          await updateTaskStatus(taskId, { status: 'done', actual_minutes: actualMinutes });
+          setCompletionModalTask(null);
+          showToast('Task completed & actual time recorded!');
+        };
+
+        const updateTaskStatus = async (taskId, updates) => {
+          const res = await fetch(`/api/tasks/${taskId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+          });
+          if (res.ok) {
+            fetchTodayData();
+            fetchBacklogTasks();
+            fetchPattern();
+          }
+        };
+
+        const handleScheduleTask = async (taskId, dateStr) => {
+          await updateTaskStatus(taskId, { scheduled_for: dateStr });
+          showToast(`Task scheduled for ${dateStr}`);
+        };
+
+        const handleDeleteTask = async (taskId) => {
+          const res = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast('Task deleted');
+            fetchTodayData();
+            fetchBacklogTasks();
+          }
+        };
+
+        const handleAddEvent = async (eventData) => {
+          const res = await fetch('/api/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData)
+          });
+          if (res.ok) {
+            showToast('Event added');
+            fetchTodayData();
+          }
+        };
+
+        const handleGenerateAiBrief = async () => {
+          const res = await fetch('/api/ai/daily-brief', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: selectedDate })
+          });
+          if (res.ok) {
+            showToast('Daily AI Brief generated!');
+            fetchTodayData();
+          }
+        };
+
+        const handleRecomputePattern = async () => {
+          const res = await fetch('/api/patterns/recompute', { method: 'POST' });
+          if (res.ok) {
+            setPattern(await res.json());
+            showToast('Patterns recomputed from last 30 days');
+          }
+        };
+
+        const handleSaveReflection = async (dateStr, moodNote) => {
+          const res = await fetch(`/api/daily-log/${dateStr}/reflect`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mood_note: moodNote })
+          });
+          if (res.ok) {
+            setDailyLog(await res.json());
+            showToast('Reflection saved!');
+          }
+        };
+
+        const changeDate = (days) => {
+          const d = new Date(selectedDate);
+          d.setDate(d.getDate() + days);
+          setSelectedDate(d.toISOString().split('T')[0]);
+        };
+
+        return React.createElement('div', { className: 'flex h-screen overflow-hidden bg-dark-900 text-slate-100' },
+          /* SIDEBAR */
+          React.createElement('aside', { className: 'w-64 border-r border-slate-800/80 glass-card flex flex-col justify-between p-5 shrink-0 hidden md:flex' },
+            React.createElement('div', { className: 'space-y-8' },
+              React.createElement('div', { className: 'flex items-center gap-3' },
+                React.createElement('div', { className: 'w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/25' },
+                  React.createElement(Sparkles, { className: 'w-5 h-5 fill-white/20' })
+                ),
+                React.createElement('div', null,
+                  React.createElement('h1', { className: 'font-bold text-lg text-white font-sans tracking-tight' }, 'DailyOS'),
+                  React.createElement('p', { className: 'text-[10px] text-slate-400 font-medium' }, 'AI Task & Life Dashboard')
+                )
+              ),
+              React.createElement('nav', { className: 'space-y-1.5' },
+                [
+                  { id: 'today', label: 'Today', icon: LayoutDashboard, badge: tasks.length },
+                  { id: 'patterns', label: 'Patterns', icon: PieChart },
+                  { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
+                  { id: 'history', label: 'Log History', icon: History }
+                ].map(item => {
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id;
+                  return React.createElement('button', {
+                    key: item.id,
+                    onClick: () => setActiveView(item.id),
+                    className: `w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      isActive ? 'bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-semibold shadow-lg shadow-brand-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    }`
+                  },
+                    React.createElement('div', { className: 'flex items-center gap-3' },
+                      React.createElement(Icon, { className: 'w-4 h-4' }),
+                      React.createElement('span', null, item.label)
+                    ),
+                    item.badge !== undefined && item.badge > 0 && React.createElement('span', { className: `px-2 py-0.5 text-xs rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'}` }, item.badge)
+                  );
+                })
+              )
+            ),
+            React.createElement('div', { className: 'bg-dark-800/60 p-3 rounded-xl border border-slate-800 text-xs flex items-center justify-between text-slate-400' },
+              React.createElement('div', { className: 'flex items-center gap-2' },
+                React.createElement(Database, { className: 'w-4 h-4 text-emerald-400' }),
+                React.createElement('span', null, 'Local DB Engine')
+              ),
+              React.createElement('span', { className: 'w-2 h-2 rounded-full bg-emerald-400 animate-ping' })
+            )
+          ),
+
+          /* MAIN CONTENT */
+          React.createElement('div', { className: 'flex-1 flex flex-col min-w-0 overflow-hidden' },
+            React.createElement('header', { className: 'h-16 border-b border-slate-800/80 px-6 flex items-center justify-between glass-card shrink-0' },
+              React.createElement('div', { className: 'flex items-center gap-2' },
+                React.createElement('button', { onClick: () => changeDate(-1), className: 'p-1.5 rounded-lg bg-slate-800/60 text-slate-300' }, React.createElement(ChevronLeft, { className: 'w-4 h-4' })),
+                React.createElement('div', { className: 'flex items-center gap-2 bg-dark-800 px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-semibold text-slate-200' },
+                  React.createElement(CalendarIcon, { className: 'w-3.5 h-3.5 text-brand-400' }),
+                  React.createElement('span', null, selectedDate)
+                ),
+                React.createElement('button', { onClick: () => changeDate(1), className: 'p-1.5 rounded-lg bg-slate-800/60 text-slate-300' }, React.createElement(ChevronRight, { className: 'w-4 h-4' }))
+              ),
+              toastMessage && React.createElement('div', { className: 'flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl' },
+                React.createElement(CheckCircle2, { className: 'w-3.5 h-3.5' }),
+                React.createElement('span', null, toastMessage)
+              )
+            ),
+
+            React.createElement('main', { className: 'flex-1 overflow-y-auto p-6' },
+              React.createElement('div', { className: 'max-w-6xl mx-auto' },
+                activeView === 'today' && React.createElement(TodayView, {
+                  selectedDate, tasks, events, dailyLog,
+                  onStatusChange: handleStatusChange, onAddTask: handleAddTask, onAddEvent: handleAddEvent, onGenerateAiBrief: handleGenerateAiBrief
+                }),
+                activeView === 'patterns' && React.createElement(PatternsView, {
+                  pattern, onRecomputePattern: handleRecomputePattern
+                }),
+                activeView === 'backlog' && React.createElement(BacklogView, {
+                  backlogTasks, onAddTask: handleAddTask, onScheduleTask: handleScheduleTask, onDeleteTask: handleDeleteTask
+                }),
+                activeView === 'history' && React.createElement(LogHistoryView, {
+                  selectedDate, onSelectDate: setSelectedDate, dailyLog, onSaveReflection: handleSaveReflection
+                })
+              )
+            )
+          ),
+
+          React.createElement(CompletionModal, {
+            isOpen: !!completionModalTask,
+            task: completionModalTask,
+            onClose: () => setCompletionModalTask(null),
+            onSubmit: handleCompletionSubmit
+          })
+        );
+      }
+
+      const root = createRoot(document.getElementById('root'));
+      root.render(React.createElement(App));
+    </script>
+  </body>
+</html>

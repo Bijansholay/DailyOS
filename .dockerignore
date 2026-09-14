@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+.npm-cache
+npm-cache
+data/*.json
+.git
+.gitignore
