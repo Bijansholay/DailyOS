@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.npm-cache/
+npm-cache/
+
+# Environment and Secrets
+.env
+.env.local
+.env.production
+.env.development
+
+# Production Build Output
+dist/
+dist-ssr/
+*.local
+
+# Database & Local Data Storage
+data/*.json
+data/db.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
