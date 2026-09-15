@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
-  ChevronLeft, ChevronRight, Sparkles, Database, CheckCircle2 
+  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen
 } from 'lucide-react';
 
 import TodayView from './components/TodayView';
@@ -94,7 +94,7 @@ export default function App() {
         body: JSON.stringify(taskData)
       });
       if (res.ok) {
-        showToast('Task added successfully');
+        showToast('Task added');
         fetchTodayData();
         fetchBacklogTasks();
       }
@@ -105,7 +105,6 @@ export default function App() {
 
   const handleStatusChange = (task, newStatus) => {
     if (newStatus === 'done') {
-      // Prompt modal for actual_minutes
       setCompletionModalTask(task);
     } else {
       updateTaskStatus(task.id, { status: newStatus });
@@ -118,7 +117,7 @@ export default function App() {
       actual_minutes: actualMinutes
     });
     setCompletionModalTask(null);
-    showToast('Task completed & actual time recorded!');
+    showToast('Task completed & time logged');
   };
 
   const updateTaskStatus = async (taskId, updates) => {
@@ -140,7 +139,7 @@ export default function App() {
 
   const handleScheduleTask = async (taskId, dateStr) => {
     await updateTaskStatus(taskId, { scheduled_for: dateStr });
-    showToast(`Task scheduled for ${dateStr}`);
+    showToast(`Scheduled for ${dateStr}`);
   };
 
   const handleDeleteTask = async (taskId) => {
@@ -182,7 +181,7 @@ export default function App() {
         body: JSON.stringify({ date: selectedDate })
       });
       if (res.ok) {
-        showToast('Daily AI Brief generated!');
+        showToast('Daily Schedule Updated');
         fetchTodayData();
       }
     } catch (err) {
@@ -196,7 +195,7 @@ export default function App() {
       const res = await fetch('/api/patterns/recompute', { method: 'POST' });
       if (res.ok) {
         setPattern(await res.json());
-        showToast('Patterns recomputed from last 30 days');
+        showToast('Patterns recomputed');
       }
     } catch (err) {
       console.error('Error recomputing pattern:', err);
@@ -213,7 +212,7 @@ export default function App() {
       });
       if (res.ok) {
         setDailyLog(await res.json());
-        showToast('Reflection saved!');
+        showToast('Reflection saved');
       }
     } catch (err) {
       console.error('Error saving reflection:', err);
@@ -230,26 +229,26 @@ export default function App() {
   const isTodaySelected = selectedDate === new Date().toISOString().split('T')[0];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-dark-900 text-slate-100">
+    <div className="flex h-screen overflow-hidden bg-[#1C1B19] text-[#E8E6E3]">
       {/* SIDEBAR */}
-      <aside className="w-64 border-r border-slate-800/80 glass-card flex flex-col justify-between p-5 shrink-0 hidden md:flex">
+      <aside className="w-64 border-r border-[#33302B] bg-[#1C1B19] flex flex-col justify-between p-6 shrink-0 hidden md:flex">
         <div className="space-y-8">
-          {/* LOGO */}
+          {/* LOGO / JOURNAL TITLE */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/25">
-              <Sparkles className="w-5 h-5 fill-white/20" />
+            <div className="w-8 h-8 rounded-lg bg-[#24221F] border border-[#33302B] flex items-center justify-center text-[#D4A24C]">
+              <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-white font-sans tracking-tight">DailyOS</h1>
-              <p className="text-[10px] text-slate-400 font-medium">AI Task & Life Dashboard</p>
+              <h1 className="font-journal text-xl font-normal text-[#E8E6E3] tracking-tight">DailyOS</h1>
+              <p className="text-[10px] text-[#9E9A92] uppercase tracking-wider font-semibold">Personal Journal</p>
             </div>
           </div>
 
           {/* NAVIGATION LINKS */}
-          <nav className="space-y-1.5">
+          <nav className="space-y-1">
             {[
-              { id: 'today', label: 'Today', icon: LayoutDashboard, badge: tasks.length },
-              { id: 'patterns', label: 'Patterns', icon: PieChart },
+              { id: 'today', label: 'Day Planner', icon: LayoutDashboard, badge: tasks.length },
+              { id: 'patterns', label: 'Analytics', icon: PieChart },
               { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
               { id: 'history', label: 'Log History', icon: History },
             ].map((item) => {
@@ -260,10 +259,10 @@ export default function App() {
                 <button
                   key={item.id}
                   onClick={() => setActiveView(item.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all ${
                     isActive 
-                      ? 'bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-lg shadow-brand-500/20 font-semibold' 
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                      ? 'bg-[#24221F] text-[#D4A24C] border border-[#33302B] font-semibold' 
+                      : 'text-[#9E9A92] hover:text-[#E8E6E3] hover:bg-[#24221F]/40'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -271,8 +270,8 @@ export default function App() {
                     <span>{item.label}</span>
                   </div>
                   {item.badge !== undefined && item.badge > 0 && (
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+                    <span className={`px-2 py-0.5 text-[10px] rounded ${
+                      isActive ? 'bg-[#D4A24C]/20 text-[#D4A24C]' : 'bg-[#24221F] text-[#9E9A92]'
                     }`}>
                       {item.badge}
                     </span>
@@ -284,19 +283,19 @@ export default function App() {
         </div>
 
         {/* SYSTEM STATUS BADGE */}
-        <div className="bg-dark-800/60 p-3 rounded-xl border border-slate-800 text-xs flex items-center justify-between text-slate-400">
+        <div className="bg-[#24221F] p-3 rounded-lg border border-[#33302B] text-xs flex items-center justify-between text-[#9E9A92]">
           <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-emerald-400" />
+            <Database className="w-3.5 h-3.5 text-[#D4A24C]" />
             <span className="capitalize">{dbMode} DB</span>
           </div>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span className="w-2 h-2 rounded-full bg-[#D4A24C]" />
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* HEADER */}
-        <header className="h-16 border-b border-slate-800/80 px-6 flex items-center justify-between glass-card shrink-0">
+        <header className="h-16 border-b border-[#33302B] px-6 flex items-center justify-between bg-[#1C1B19] shrink-0">
           {/* MOBILE NAV TABS */}
           <div className="flex items-center gap-1 md:hidden">
             {[
@@ -310,7 +309,7 @@ export default function App() {
                 <button
                   key={item.id}
                   onClick={() => setActiveView(item.id)}
-                  className={`p-2 rounded-lg ${activeView === item.id ? 'bg-brand-600 text-white' : 'text-slate-400'}`}
+                  className={`p-2 rounded-lg ${activeView === item.id ? 'bg-[#24221F] text-[#D4A24C]' : 'text-[#9E9A92]'}`}
                 >
                   <Icon className="w-4 h-4" />
                 </button>
@@ -322,29 +321,29 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => changeDate(-1)}
-              className="p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700 text-slate-300 transition-colors"
+              className="p-1.5 rounded-lg bg-[#24221F] hover:bg-[#292723] text-[#9E9A92] hover:text-[#E8E6E3] transition-colors border border-[#33302B]"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-2 bg-dark-800 px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-semibold text-slate-200">
-              <CalendarIcon className="w-3.5 h-3.5 text-brand-400" />
-              <span>{selectedDate}</span>
+            <div className="flex items-center gap-2 bg-[#24221F] px-3.5 py-1.5 rounded-lg border border-[#33302B] text-xs font-semibold text-[#E8E6E3]">
+              <CalendarIcon className="w-3.5 h-3.5 text-[#D4A24C]" />
+              <span className="font-mono">{selectedDate}</span>
               {isTodaySelected && (
-                <span className="px-1.5 py-0.2 bg-brand-500/20 text-brand-300 rounded text-[10px] uppercase">
+                <span className="px-1.5 py-0.2 bg-[#D4A24C]/20 text-[#D4A24C] rounded text-[10px] uppercase font-bold tracking-wider">
                   Today
                 </span>
               )}
             </div>
             <button
               onClick={() => changeDate(1)}
-              className="p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700 text-slate-300 transition-colors"
+              className="p-1.5 rounded-lg bg-[#24221F] hover:bg-[#292723] text-[#9E9A92] hover:text-[#E8E6E3] transition-colors border border-[#33302B]"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
             {!isTodaySelected && (
               <button
                 onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-                className="text-xs text-brand-400 font-medium hover:underline ml-1"
+                className="text-xs text-[#D4A24C] font-semibold hover:underline ml-2"
               >
                 Go to Today
               </button>
@@ -353,7 +352,7 @@ export default function App() {
 
           {/* TOAST NOTIFICATION */}
           {toastMessage && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl animate-fadeIn">
+            <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-[#24221F] border border-[#D4A24C]/40 text-[#D4A24C] text-xs rounded-lg animate-fadeIn">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{toastMessage}</span>
             </div>
@@ -362,7 +361,7 @@ export default function App() {
 
         {/* BODY VIEWS */}
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             {activeView === 'today' && (
               <TodayView
                 selectedDate={selectedDate}
@@ -404,7 +403,7 @@ export default function App() {
         </main>
       </div>
 
-      {/* COMPLETION MODAL FOR ACTUAL_MINUTES */}
+      {/* COMPLETION MODAL */}
       <CompletionModal
         isOpen={!!completionModalTask}
         task={completionModalTask}

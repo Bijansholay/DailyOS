@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Calendar as CalendarIcon, CheckCircle2, XSquare, AlertCircle, 
-  Sparkles, MessageSquare, Send, ChevronLeft, ChevronRight 
-} from 'lucide-react';
+import { CheckCircle2, XSquare, AlertCircle, MessageSquare, Send } from 'lucide-react';
 
 export default function LogHistoryView({ 
   selectedDate, 
@@ -49,18 +46,18 @@ export default function LogHistoryView({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-4xl mx-auto space-y-8 py-2">
+      <div className="border-b border-[#33302B] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="font-bold text-xl text-white">Log History & Reflections</h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Retrospective glance at past performance and daily reflections
-          </p>
+          <span className="text-xs font-semibold tracking-widest text-[#D4A24C] uppercase">Journal Archives</span>
+          <h1 className="font-journal text-3xl md:text-4xl text-[#E8E6E3] font-normal tracking-tight mt-1">
+            Log History & Reflections
+          </h1>
         </div>
       </div>
 
       {/* 14-DAY CALENDAR NAVIGATOR RIBBON */}
-      <div className="glass-card rounded-2xl p-4 border border-slate-800 flex items-center gap-2 overflow-x-auto">
+      <div className="journal-card rounded-xl p-3 flex items-center gap-2 overflow-x-auto">
         {calendarDays.map((dateStr) => {
           const isSelected = dateStr === selectedDate;
           const dateObj = new Date(dateStr);
@@ -71,14 +68,14 @@ export default function LogHistoryView({
             <button
               key={dateStr}
               onClick={() => onSelectDate(dateStr)}
-              className={`flex-1 min-w-[64px] py-3 px-2 rounded-xl text-center transition-all border ${
+              className={`flex-1 min-w-[56px] py-2.5 px-2 rounded-lg text-center transition-all border ${
                 isSelected
-                  ? 'bg-brand-600 text-white border-brand-500 shadow-lg shadow-brand-500/20 font-bold scale-105'
-                  : 'bg-dark-800/80 text-slate-400 border-slate-700/50 hover:bg-slate-800 hover:text-slate-200'
+                  ? 'bg-[#24221F] text-[#D4A24C] border-[#D4A24C] font-semibold'
+                  : 'bg-[#1C1B19] text-[#9E9A92] border-[#33302B] hover:bg-[#24221F] hover:text-[#E8E6E3]'
               }`}
             >
-              <span className="text-[10px] uppercase tracking-wider block opacity-75">{dayName}</span>
-              <span className="text-base font-semibold block mt-0.5">{dayNum}</span>
+              <span className="text-[10px] uppercase tracking-wider block font-mono">{dayName}</span>
+              <span className="text-sm font-semibold block mt-0.5">{dayNum}</span>
             </button>
           );
         })}
@@ -89,43 +86,43 @@ export default function LogHistoryView({
         {/* STATS & MOOD REFLECTION (2 COLS) */}
         <div className="lg:col-span-2 space-y-6">
           {/* DAILY COUNTS */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="glass-card rounded-2xl p-4 border border-emerald-500/20 text-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
-              <span className="font-bold text-2xl text-white">{dailyLog?.tasks_completed || 0}</span>
-              <p className="text-[11px] text-slate-400 mt-0.5">Completed</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="journal-card rounded-xl p-4 text-center">
+              <CheckCircle2 className="w-4 h-4 text-[#D4A24C] mx-auto mb-1" />
+              <span className="font-journal text-2xl text-[#E8E6E3]">{dailyLog?.tasks_completed || 0}</span>
+              <p className="text-[11px] text-[#9E9A92] mt-0.5">Completed</p>
             </div>
-            <div className="glass-card rounded-2xl p-4 border border-amber-500/20 text-center">
-              <XSquare className="w-5 h-5 text-amber-400 mx-auto mb-1" />
-              <span className="font-bold text-2xl text-white">{dailyLog?.tasks_skipped || 0}</span>
-              <p className="text-[11px] text-slate-400 mt-0.5">Skipped</p>
+            <div className="journal-card rounded-xl p-4 text-center">
+              <XSquare className="w-4 h-4 text-[#9E9A92] mx-auto mb-1" />
+              <span className="font-journal text-2xl text-[#E8E6E3]">{dailyLog?.tasks_skipped || 0}</span>
+              <p className="text-[11px] text-[#9E9A92] mt-0.5">Skipped</p>
             </div>
-            <div className="glass-card rounded-2xl p-4 border border-rose-500/20 text-center">
-              <AlertCircle className="w-5 h-5 text-rose-400 mx-auto mb-1" />
-              <span className="font-bold text-2xl text-white">{dailyLog?.tasks_late || 0}</span>
-              <p className="text-[11px] text-slate-400 mt-0.5">Late</p>
+            <div className="journal-card rounded-xl p-4 text-center">
+              <AlertCircle className="w-4 h-4 text-[#66625B] mx-auto mb-1" />
+              <span className="font-journal text-2xl text-[#E8E6E3]">{dailyLog?.tasks_late || 0}</span>
+              <p className="text-[11px] text-[#9E9A92] mt-0.5">Late</p>
             </div>
           </div>
 
           {/* MOOD REFLECTION FORM */}
-          <div className="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
-            <div className="flex items-center gap-2 text-slate-200">
-              <MessageSquare className="w-5 h-5 text-brand-400" />
-              <h3 className="font-semibold text-base">Daily Reflection & Mood Note</h3>
+          <div className="journal-card rounded-xl p-5 space-y-4">
+            <div className="flex items-center gap-2 text-[#E8E6E3]">
+              <MessageSquare className="w-4 h-4 text-[#D4A24C]" />
+              <h3 className="font-journal text-lg">Daily Reflection</h3>
             </div>
             <form onSubmit={handleReflectionSubmit} className="space-y-3">
               <textarea
                 rows={3}
-                placeholder="How did today feel? Any friction, wins, or reflections on energy levels?"
+                placeholder="How did today feel? Any reflections on energy levels or friction?"
                 value={moodNote}
                 onChange={(e) => setMoodNote(e.target.value)}
-                className="w-full px-4 py-3 glass-input rounded-xl text-sm"
+                className="w-full px-3.5 py-2.5 journal-input rounded-lg text-sm"
               />
               <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-medium shadow-lg shadow-brand-500/20 transition-all"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] font-semibold rounded-lg text-xs transition-colors"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{isSaving ? 'Saving...' : 'Save Reflection'}</span>
@@ -135,24 +132,16 @@ export default function LogHistoryView({
           </div>
         </div>
 
-        {/* AI BRIEFING ARCHIVE (1 COL) */}
-        <div className="glass-card rounded-2xl p-6 border border-brand-500/20 space-y-4">
-          <div className="flex items-center gap-2 text-brand-400">
-            <Sparkles className="w-5 h-5" />
-            <h3 className="font-semibold text-white text-base">Historical AI Briefing</h3>
-          </div>
+        {/* HISTORICAL PLAN INSIGHT (1 COL - NO AI CHIPS) */}
+        <div className="journal-card rounded-xl p-5 space-y-3 border-l-4 border-l-[#D4A24C]">
+          <h3 className="font-journal text-lg text-[#E8E6E3]">Schedule Insight</h3>
           {aiSummary ? (
-            <div className="space-y-3 text-xs text-slate-300">
-              <div className="bg-dark-800/80 p-3.5 rounded-xl border border-slate-700/50">
-                <span className="text-[10px] text-brand-400 font-bold uppercase tracking-wider block mb-1">
-                  Gemini Insight
-                </span>
-                <p className="leading-relaxed text-slate-200">{aiSummary.insight}</p>
-              </div>
-            </div>
+            <p className="text-sm text-[#E8E6E3] font-serif italic leading-relaxed">
+              "{aiSummary.insight}"
+            </p>
           ) : (
-            <p className="text-xs text-slate-400 leading-relaxed">
-              No AI summary generated for this date.
+            <p className="text-xs text-[#9E9A92] italic">
+              No schedule insight recorded for this date.
             </p>
           )}
         </div>
