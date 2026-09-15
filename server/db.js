@@ -1,7 +1,7 @@
 import path from 'path';
 import fileSystem from 'fs';
 
-// Native .env parser if dotenv is not loaded
+// Nativ .env parser if dotenv is not loaded
 function loadEnv() {
   const envPath = path.resolve(process.cwd(), '.env');
   if (fileSystem.existsSync(envPath)) {
