@@ -136,9 +136,15 @@ export default function TodayView({
   const completedCount = tasks.filter(t => t.status === 'done').length;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-10 py-2">
+    <div 
+      className="max-w-4xl mx-auto space-y-10 py-2"
+      title="Component: <TodayView /> — Chronological Day Planner & Timeline Engine (src/components/TodayView.jsx)"
+    >
       {/* DAY JOURNAL HEADER */}
-      <div className="border-b border-[#33302B] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div 
+        className="border-b border-[#33302B] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4"
+        title="Component: <JournalHeader /> — Renders date, completed task metrics, and entry triggers"
+      >
         <div>
           <span className="text-xs font-semibold tracking-widest text-[#D4A24C] uppercase">Day Planner</span>
           <h1 className="font-journal text-3xl md:text-4xl text-[#E8E6E3] font-normal tracking-tight mt-1">
@@ -146,11 +152,12 @@ export default function TodayView({
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-[#9E9A92] font-medium">
+          <span className="text-xs text-[#9E9A92] font-medium" title="Function: Completion Progress Metric">
             {completedCount} of {tasks.length} tasks completed
           </span>
           <button
             onClick={() => setShowTaskForm(!showTaskForm)}
+            title="Action: Opens inline task entry creation form"
             className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] rounded-lg text-xs font-semibold transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -160,7 +167,10 @@ export default function TodayView({
       </div>
 
       {/* PLAIN-TEXT PLAN INSIGHT (NO AI BADGE OR CHIP) */}
-      <div className="journal-card rounded-xl p-5 border-l-4 border-l-[#D4A24C]">
+      <div 
+        className="journal-card rounded-xl p-5 border-l-4 border-l-[#D4A24C] relative group"
+        title="Component: <AIScheduleInsight /> — Generates plain-text energy-window analysis using Google Gemini 2.5 API"
+      >
         <div className="flex items-start justify-between gap-4">
           <p className="text-[#E8E6E3] text-sm md:text-base leading-relaxed font-serif italic">
             "{aiSummary?.insight || "Your afternoon fits best for deep focus — you complete 80% of tasks planned in your peak window."}"
@@ -168,17 +178,24 @@ export default function TodayView({
           <button
             onClick={handleTriggerBrief}
             disabled={isGeneratingBrief}
-            title="Update Daily Schedule"
+            title="Action: Triggers Google Gemini schedule optimization briefing"
             className="text-[#9E9A92] hover:text-[#D4A24C] transition-colors p-1 shrink-0"
           >
             <RefreshCw className={`w-4 h-4 ${isGeneratingBrief ? 'animate-spin' : ''}`} />
           </button>
         </div>
+        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-[#D4A24C] font-mono mt-2 block">
+          💡 Component: &lt;AIScheduleInsight /&gt; — Gemini AI Telemetry Optimization
+        </span>
       </div>
 
       {/* INLINE TASK / EVENT ADD FORM */}
       {showTaskForm && (
-        <form onSubmit={handleTaskSubmit} className="journal-card rounded-xl p-5 space-y-4 border border-[#D4A24C]/40">
+        <form 
+          onSubmit={handleTaskSubmit} 
+          className="journal-card rounded-xl p-5 space-y-4 border border-[#D4A24C]/40"
+          title="Component: <TaskCreationForm /> — Captures task title, estimated duration, category, and priority weight"
+        >
           <h3 className="font-journal text-lg text-[#E8E6E3]">New Schedule Item</h3>
           <input
             type="text"
@@ -258,8 +275,11 @@ export default function TodayView({
         </form>
       )}
 
-      {/* RUNNING TIMELINE / DAY PLANNER LIST (NO CARDS / NO COLORED PILLS) */}
-      <div className="space-y-0 relative">
+      {/* RUNNING TIMELINE / DAY PLANNER LIST */}
+      <div 
+        className="space-y-0 relative"
+        title="Component: <TimelineList /> — Chronological day execution timeline"
+      >
         {timelineItems.length === 0 ? (
           <div className="py-12 text-center text-[#9E9A92] border-t border-b border-[#33302B]">
             <p className="font-serif italic text-lg">No entries scheduled for today.</p>
@@ -275,7 +295,11 @@ export default function TodayView({
             {timelineItems.map((item) => {
               if (item.type === 'event') {
                 return (
-                  <div key={item.id} className="py-4 flex items-start gap-6 group hover:bg-[#24221F]/40 px-3 rounded-lg transition-colors">
+                  <div 
+                    key={item.id} 
+                    className="py-4 flex items-start gap-6 group hover:bg-[#24221F]/40 px-3 rounded-lg transition-colors"
+                    title={`Component: <EventRow /> — Calendar Event: ${item.title}`}
+                  >
                     {/* Time on the Left */}
                     <div className="w-20 shrink-0 text-right">
                       <span className="font-mono text-xs font-semibold text-[#D4A24C]">{item.time}</span>
@@ -301,6 +325,7 @@ export default function TodayView({
               return (
                 <div 
                   key={task.id}
+                  title={`Component: <TaskItemRow id="${task.id}" /> — Priority: ${task.priority.toUpperCase()} | Est: ${task.estimated_minutes}m`}
                   className={`py-4 flex items-start gap-4 md:gap-6 group hover:bg-[#24221F]/50 px-3 rounded-lg transition-colors ${
                     isDone ? 'opacity-40' : isSkipped ? 'opacity-30' : ''
                   }`}
@@ -320,6 +345,7 @@ export default function TodayView({
                   {/* Checkbox */}
                   <button
                     onClick={() => onStatusChange(task, isDone ? 'pending' : 'done')}
+                    title="Action: Mark as completed and log actual duration"
                     className="mt-0.5 text-[#9E9A92] hover:text-[#D4A24C] transition-colors shrink-0"
                   >
                     {isDone ? (
@@ -329,7 +355,7 @@ export default function TodayView({
                     )}
                   </button>
 
-                  {/* Task Content (Priority expressed by font size & weight!) */}
+                  {/* Task Content */}
                   <div className="flex-1 min-w-0 space-y-1">
                     <h4 className={`leading-snug transition-all ${
                       isDone ? 'line-through text-[#9E9A92]' : ''
@@ -344,12 +370,12 @@ export default function TodayView({
                     </h4>
 
                     <div className="flex items-center gap-4 text-xs text-[#9E9A92]">
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1" title="Telemetry: Estimated Duration">
                         <Clock className="w-3 h-3 text-[#66625B]" />
                         {task.estimated_minutes}m
                       </span>
                       {task.actual_minutes !== null && (
-                        <span className="text-[#D4A24C] font-mono">
+                        <span className="text-[#D4A24C] font-mono" title="Telemetry: Actual Logged Duration">
                           actual: {task.actual_minutes}m
                         </span>
                       )}
@@ -363,14 +389,14 @@ export default function TodayView({
                       <>
                         <button
                           onClick={() => onStatusChange(task, 'skipped')}
-                          title="Skip Task"
+                          title="Action: Mark task as skipped (triggers skip streak detection)"
                           className="p-1.5 text-[#9E9A92] hover:text-[#D4A24C] transition-colors"
                         >
                           <XSquare className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => onStatusChange(task, 'late')}
-                          title="Mark Late"
+                          title="Action: Mark task as late"
                           className="p-1.5 text-[#9E9A92] hover:text-[#D4A24C] transition-colors"
                         >
                           <AlertCircle className="w-4 h-4" />
