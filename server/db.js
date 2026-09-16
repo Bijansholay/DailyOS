@@ -88,7 +88,7 @@ export const dbEngine = {
 
   async ensureDefaultUser() {
     if (mode === 'supabase' && supabase) {
-      const { data } = await supabase.from('users').select('*').eq('id', DEFAULT_USER_ID).single();
+      const { data } = await supabase.from('users').select('*').eq('id', DEFAULT_USER_ID).maybeSingle();
       if (!data) {
         await supabase.from('users').insert({
           id: DEFAULT_USER_ID,
@@ -108,6 +108,54 @@ export const dbEngine = {
         });
         saveJsonDb(db);
       }
+    }
+  },
+
+  async createUser({ email, password_hash }) {
+    const id = generateUuid();
+    const newUser = {
+      id,
+      email: email.toLowerCase().trim(),
+      password_hash,
+      created_at: new Date().toISOString()
+    };
+
+    if (mode === 'supabase' && supabase) {
+      const { data, error } = await supabase.from('users').insert(newUser).select().single();
+      if (error) throw error;
+      return data;
+    } else {
+      const db = loadJsonDb();
+      if (!db.users) db.users = [];
+      const existing = db.users.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
+      if (existing) {
+        throw new Error('User with this email already exists');
+      }
+      db.users.push(newUser);
+      saveJsonDb(db);
+      return newUser;
+    }
+  },
+
+  async findUserByEmail(email) {
+    if (mode === 'supabase' && supabase) {
+      const { data } = await supabase.from('users').select('*').eq('email', email.toLowerCase().trim()).maybeSingle();
+      return data;
+    } else {
+      const db = loadJsonDb();
+      if (!db.users) return null;
+      return db.users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase().trim()) || null;
+    }
+  },
+
+  async findUserById(id) {
+    if (mode === 'supabase' && supabase) {
+      const { data } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
+      return data;
+    } else {
+      const db = loadJsonDb();
+      if (!db.users) return null;
+      return db.users.find(u => u.id === id) || null;
     }
   },
 

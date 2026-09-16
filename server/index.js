@@ -11,6 +11,7 @@ import eventsRouter from './routes/events.js';
 import dailyLogRouter from './routes/dailyLog.js';
 import patternsRouter from './routes/patterns.js';
 import aiRouter from './routes/ai.js';
+import authRouter from './routes/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,6 +34,7 @@ try {
   app.use(cors());
   app.use(express.json());
 
+  if (authRouter) app.use('/api/auth', authRouter);
   if (tasksRouter) app.use('/api/tasks', tasksRouter);
   if (eventsRouter) app.use('/api/events', eventsRouter);
   if (dailyLogRouter) app.use('/api/daily-log', dailyLogRouter);

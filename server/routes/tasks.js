@@ -1,4 +1,5 @@
 import { dbEngine } from '../db.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 let router = null;
 
@@ -7,11 +8,13 @@ try {
   const express = expressModule.default;
   router = express.Router();
 
+  router.use(authMiddleware);
+
   router.get('/', async (req, res) => {
     try {
       const { date, backlog } = req.query;
       const tasks = await dbEngine.getTasks({
-        userId: dbEngine.defaultUserId,
+        userId: req.userId,
         date,
         isBacklog: backlog === 'true'
       });
@@ -28,7 +31,7 @@ try {
         return res.status(400).json({ error: 'Task title is required' });
       }
       const newTask = await dbEngine.createTask({
-        user_id: dbEngine.defaultUserId,
+        user_id: req.userId,
         title: title.trim(),
         category: category || 'personal',
         estimated_minutes: parseInt(estimated_minutes, 10) || 30,

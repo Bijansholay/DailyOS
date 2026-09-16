@@ -1,4 +1,5 @@
 import { dbEngine } from '../db.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 let router = null;
 
@@ -7,10 +8,12 @@ try {
   const express = expressModule.default;
   router = express.Router();
 
+  router.use(authMiddleware);
+
   router.get('/:date', async (req, res) => {
     try {
       const { date } = req.params;
-      const userId = dbEngine.defaultUserId;
+      const userId = req.userId;
       let log = await dbEngine.getDailyLog(userId, date);
       const tasks = await dbEngine.getTasks({ userId, date });
       const completed = tasks.filter(t => t.status === 'done').length;
@@ -34,7 +37,7 @@ try {
     try {
       const { date } = req.params;
       const { mood_note } = req.body;
-      const userId = dbEngine.defaultUserId;
+      const userId = req.userId;
       const tasks = await dbEngine.getTasks({ userId, date });
       const updatedLog = await dbEngine.upsertDailyLog(userId, date, {
         tasks_completed: tasks.filter(t => t.status === 'done').length,

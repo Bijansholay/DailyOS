@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
-  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen
+  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn
 } from 'lucide-react';
 
 import TodayView from './components/TodayView';
@@ -9,10 +9,23 @@ import PatternsView from './components/PatternsView';
 import BacklogView from './components/BacklogView';
 import LogHistoryView from './components/LogHistoryView';
 import CompletionModal from './components/CompletionModal';
+import AuthModal from './components/AuthModal';
 
 export default function App() {
   const [activeView, setActiveView] = useState('today'); // today | patterns | backlog | history
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  // Auth State
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dailyos_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('dailyos_token'));
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Data states
   const [tasks, setTasks] = useState([]);
@@ -33,17 +46,49 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Fetch data when date or view changes
+  // Helper fetch with Bearer token authentication header
+  const authFetch = (url, options = {}) => {
+    const token = authToken || localStorage.getItem('dailyos_token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return fetch(url, { ...options, headers });
+  };
+
+  const handleAuthSuccess = (user, token) => {
+    setCurrentUser(user);
+    setAuthToken(token);
+    showToast(`Welcome, ${user.email}!`);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('dailyos_token');
+    localStorage.removeItem('dailyos_user');
+    setCurrentUser(null);
+    setAuthToken(null);
+    setTasks([]);
+    setBacklogTasks([]);
+    setEvents([]);
+    setDailyLog(null);
+    setPattern(null);
+    showToast('Logged out successfully');
+  };
+
+  // Fetch data when date, view, or auth changes
   useEffect(() => {
     fetchTodayData();
     fetchBacklogTasks();
     fetchPattern();
     fetchHealth();
-  }, [selectedDate, activeView]);
+  }, [selectedDate, activeView, authToken]);
 
   const fetchHealth = async () => {
     try {
-      const res = await fetch('/api/health');
+      const res = await authFetch('/api/health');
       if (res.ok) {
         const data = await res.json();
         setDbMode(data.dbMode || 'sqlite');
@@ -54,9 +99,9 @@ export default function App() {
   const fetchTodayData = async () => {
     try {
       const [tasksRes, eventsRes, logRes] = await Promise.all([
-        fetch(`/api/tasks?date=${selectedDate}`),
-        fetch(`/api/events?from=${selectedDate}&to=${selectedDate}`),
-        fetch(`/api/daily-log/${selectedDate}`)
+        authFetch(`/api/tasks?date=${selectedDate}`),
+        authFetch(`/api/events?from=${selectedDate}&to=${selectedDate}`),
+        authFetch(`/api/daily-log/${selectedDate}`)
       ]);
 
       if (tasksRes.ok) setTasks(await tasksRes.json());
@@ -69,7 +114,7 @@ export default function App() {
 
   const fetchBacklogTasks = async () => {
     try {
-      const res = await fetch('/api/tasks?backlog=true');
+      const res = await authFetch('/api/tasks?backlog=true');
       if (res.ok) setBacklogTasks(await res.json());
     } catch (err) {
       console.error('Error fetching backlog:', err);
@@ -78,7 +123,7 @@ export default function App() {
 
   const fetchPattern = async () => {
     try {
-      const res = await fetch('/api/patterns');
+      const res = await authFetch('/api/patterns');
       if (res.ok) setPattern(await res.json());
     } catch (err) {
       console.error('Error fetching pattern:', err);
@@ -88,9 +133,8 @@ export default function App() {
   // TASK ACTIONS
   const handleAddTask = async (taskData) => {
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await authFetch('/api/tasks', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(taskData)
       });
       if (res.ok) {
@@ -122,9 +166,8 @@ export default function App() {
 
   const updateTaskStatus = async (taskId, updates) => {
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
+      const res = await authFetch(`/api/tasks/${taskId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
       });
       if (res.ok) {
@@ -144,7 +187,7 @@ export default function App() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
       if (res.ok) {
         showToast('Task deleted');
         fetchTodayData();
@@ -158,9 +201,8 @@ export default function App() {
   // EVENT ACTIONS
   const handleAddEvent = async (eventData) => {
     try {
-      const res = await fetch('/api/events', {
+      const res = await authFetch('/api/events', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(eventData)
       });
       if (res.ok) {
@@ -175,9 +217,8 @@ export default function App() {
   // AI BRIEFING GENERATOR ACTION
   const handleGenerateAiBrief = async () => {
     try {
-      const res = await fetch('/api/ai/daily-brief', {
+      const res = await authFetch('/api/ai/daily-brief', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date: selectedDate })
       });
       if (res.ok) {
@@ -192,7 +233,7 @@ export default function App() {
   // RECOMPUTE PATTERN ACTION
   const handleRecomputePattern = async () => {
     try {
-      const res = await fetch('/api/patterns/recompute', { method: 'POST' });
+      const res = await authFetch('/api/patterns/recompute', { method: 'POST' });
       if (res.ok) {
         setPattern(await res.json());
         showToast('Patterns recomputed');
@@ -205,9 +246,8 @@ export default function App() {
   // REFLECTION ACTION
   const handleSaveReflection = async (dateStr, moodNote) => {
     try {
-      const res = await fetch(`/api/daily-log/${dateStr}/reflect`, {
+      const res = await authFetch(`/api/daily-log/${dateStr}/reflect`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mood_note: moodNote })
       });
       if (res.ok) {
@@ -282,13 +322,41 @@ export default function App() {
           </nav>
         </div>
 
-        {/* SYSTEM STATUS BADGE */}
-        <div className="bg-[#24221F] p-3 rounded-lg border border-[#33302B] text-xs flex items-center justify-between text-[#9E9A92]">
-          <div className="flex items-center gap-2">
-            <Database className="w-3.5 h-3.5 text-[#D4A24C]" />
-            <span className="capitalize">{dbMode} DB</span>
+        {/* ACCOUNT / SYSTEM STATUS BOX */}
+        <div className="space-y-3">
+          {currentUser ? (
+            <div className="bg-[#24221F] p-3.5 rounded-lg border border-[#33302B] space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <User className="w-3.5 h-3.5 text-[#D4A24C] shrink-0" />
+                  <span className="text-xs text-[#E8E6E3] truncate">{currentUser.email}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  title="Sign Out"
+                  className="text-[#9E9A92] hover:text-rose-400 transition-colors p-1"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="w-full bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] font-semibold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In / Register</span>
+            </button>
+          )}
+
+          <div className="bg-[#24221F] p-2.5 rounded-lg border border-[#33302B] text-[11px] flex items-center justify-between text-[#9E9A92]">
+            <div className="flex items-center gap-2">
+              <Database className="w-3 h-3 text-[#D4A24C]" />
+              <span className="capitalize">{dbMode} DB</span>
+            </div>
+            <span className="w-2 h-2 rounded-full bg-[#D4A24C]" />
           </div>
-          <span className="w-2 h-2 rounded-full bg-[#D4A24C]" />
         </div>
       </aside>
 
@@ -350,13 +418,37 @@ export default function App() {
             )}
           </div>
 
-          {/* TOAST NOTIFICATION */}
-          {toastMessage && (
-            <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-[#24221F] border border-[#D4A24C]/40 text-[#D4A24C] text-xs rounded-lg animate-fadeIn">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{toastMessage}</span>
-            </div>
-          )}
+          {/* USER ACCOUNT BADGE (MOBILE & HEADER) */}
+          <div className="flex items-center gap-3">
+            {currentUser ? (
+              <div className="flex items-center gap-2 text-xs text-[#9E9A92]">
+                <User className="w-3.5 h-3.5 text-[#D4A24C]" />
+                <span className="hidden sm:inline text-[#E8E6E3] font-medium">{currentUser.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs text-[#9E9A92] hover:text-rose-400 font-medium ml-1"
+                >
+                  Log Out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="text-xs bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Account</span>
+              </button>
+            )}
+
+            {/* TOAST NOTIFICATION */}
+            {toastMessage && (
+              <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-[#24221F] border border-[#D4A24C]/40 text-[#D4A24C] text-xs rounded-lg animate-fadeIn">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{toastMessage}</span>
+              </div>
+            )}
+          </div>
         </header>
 
         {/* BODY VIEWS */}
@@ -402,6 +494,13 @@ export default function App() {
           </div>
         </main>
       </div>
+
+      {/* AUTH MODAL */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
 
       {/* COMPLETION MODAL */}
       <CompletionModal

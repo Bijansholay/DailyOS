@@ -1,4 +1,5 @@
 import { dbEngine } from '../db.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 let router = null;
 
@@ -7,10 +8,12 @@ try {
   const express = expressModule.default;
   router = express.Router();
 
+  router.use(authMiddleware);
+
   router.get('/', async (req, res) => {
     try {
       const { from, to } = req.query;
-      const events = await dbEngine.getEvents({ userId: dbEngine.defaultUserId, from, to });
+      const events = await dbEngine.getEvents({ userId: req.userId, from, to });
       res.json(events);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -24,7 +27,7 @@ try {
         return res.status(400).json({ error: 'Title and event_date are required' });
       }
       const newEvent = await dbEngine.createEvent({
-        user_id: dbEngine.defaultUserId,
+        user_id: req.userId,
         title: title.trim(),
         event_date,
         event_time: event_time || null,

@@ -1,5 +1,6 @@
 import https from 'https';
 import { dbEngine } from '../db.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 let router = null;
 
@@ -8,11 +9,13 @@ try {
   const express = expressModule.default;
   router = express.Router();
 
+  router.use(authMiddleware);
+
   router.post('/daily-brief', async (req, res) => {
     try {
       const { date } = req.body;
       const dateStr = date || new Date().toISOString().split('T')[0];
-      const userId = dbEngine.defaultUserId;
+      const userId = req.userId;
       const brief = await generateDailyBriefing(userId, dateStr);
       res.json(brief);
     } catch (err) {
