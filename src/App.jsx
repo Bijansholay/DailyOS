@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
-  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn
+  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock
 } from 'lucide-react';
 
 import TodayView from './components/TodayView';
@@ -46,8 +46,8 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Helper fetch with Bearer token authentication header
-  const authFetch = (url, options = {}) => {
+  // Helper fetch with Bearer token authentication header & 401 interceptor
+  const authFetch = async (url, options = {}) => {
     const token = authToken || localStorage.getItem('dailyos_token');
     const headers = {
       'Content-Type': 'application/json',
@@ -56,13 +56,27 @@ export default function App() {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    return fetch(url, { ...options, headers });
+    
+    try {
+      const res = await fetch(url, { ...options, headers });
+      if (res.status === 401) {
+        localStorage.removeItem('dailyos_token');
+        localStorage.removeItem('dailyos_user');
+        setCurrentUser(null);
+        setAuthToken(null);
+        setShowAuthModal(true);
+      }
+      return res;
+    } catch (err) {
+      console.error('Fetch error:', err);
+      throw err;
+    }
   };
 
   const handleAuthSuccess = (user, token) => {
     setCurrentUser(user);
     setAuthToken(token);
-    showToast(`Welcome, ${user.email}!`);
+    showToast(`Signed in as ${user.email}`);
   };
 
   const handleLogout = () => {
@@ -75,20 +89,23 @@ export default function App() {
     setEvents([]);
     setDailyLog(null);
     setPattern(null);
-    showToast('Logged out successfully');
+    setShowAuthModal(true);
+    showToast('Logged out');
   };
 
   // Fetch data when date, view, or auth changes
   useEffect(() => {
-    fetchTodayData();
-    fetchBacklogTasks();
-    fetchPattern();
+    if (authToken && currentUser) {
+      fetchTodayData();
+      fetchBacklogTasks();
+      fetchPattern();
+    }
     fetchHealth();
   }, [selectedDate, activeView, authToken]);
 
   const fetchHealth = async () => {
     try {
-      const res = await authFetch('/api/health');
+      const res = await fetch('/api/health');
       if (res.ok) {
         const data = await res.json();
         setDbMode(data.dbMode || 'sqlite');
@@ -132,6 +149,10 @@ export default function App() {
 
   // TASK ACTIONS
   const handleAddTask = async (taskData) => {
+    if (!currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
     try {
       const res = await authFetch('/api/tasks', {
         method: 'POST',
@@ -148,6 +169,10 @@ export default function App() {
   };
 
   const handleStatusChange = (task, newStatus) => {
+    if (!currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
     if (newStatus === 'done') {
       setCompletionModalTask(task);
     } else {
@@ -200,6 +225,10 @@ export default function App() {
 
   // EVENT ACTIONS
   const handleAddEvent = async (eventData) => {
+    if (!currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
     try {
       const res = await authFetch('/api/events', {
         method: 'POST',
@@ -216,6 +245,10 @@ export default function App() {
 
   // AI BRIEFING GENERATOR ACTION
   const handleGenerateAiBrief = async () => {
+    if (!currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
     try {
       const res = await authFetch('/api/ai/daily-brief', {
         method: 'POST',
@@ -418,7 +451,7 @@ export default function App() {
             )}
           </div>
 
-          {/* USER ACCOUNT BADGE (MOBILE & HEADER) */}
+          {/* USER ACCOUNT BADGE */}
           <div className="flex items-center gap-3">
             {currentUser ? (
               <div className="flex items-center gap-2 text-xs text-[#9E9A92]">
@@ -437,7 +470,7 @@ export default function App() {
                 className="text-xs bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span>Account</span>
+                <span>Sign In</span>
               </button>
             )}
 
@@ -451,54 +484,75 @@ export default function App() {
           </div>
         </header>
 
-        {/* BODY VIEWS */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-4xl mx-auto">
-            {activeView === 'today' && (
-              <TodayView
-                selectedDate={selectedDate}
-                tasks={tasks}
-                events={events}
-                dailyLog={dailyLog}
-                onStatusChange={handleStatusChange}
-                onAddTask={handleAddTask}
-                onAddEvent={handleAddEvent}
-                onGenerateAiBrief={handleGenerateAiBrief}
-              />
-            )}
+        {/* BODY VIEWS (PROTECTED UNLESS LOGGED IN) */}
+        <main className="flex-1 overflow-y-auto p-6 relative">
+          {!currentUser ? (
+            <div className="max-w-md mx-auto py-16 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-[#24221F] border border-[#33302B] flex items-center justify-center mx-auto text-[#D4A24C]">
+                <Lock className="w-6 h-6" />
+              </div>
+              <h2 className="font-journal text-2xl text-[#E8E6E3]">Authentication Required</h2>
+              <p className="text-xs text-[#9E9A92]">
+                Please sign in or create an account to access your personal journal, tasks, and analytics.
+              </p>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="px-6 py-2.5 bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Sign In / Create Account</span>
+              </button>
+            </div>
+          ) : (
+            <div className="max-w-4xl mx-auto">
+              {activeView === 'today' && (
+                <TodayView
+                  selectedDate={selectedDate}
+                  tasks={tasks}
+                  events={events}
+                  dailyLog={dailyLog}
+                  onStatusChange={handleStatusChange}
+                  onAddTask={handleAddTask}
+                  onAddEvent={handleAddEvent}
+                  onGenerateAiBrief={handleGenerateAiBrief}
+                />
+              )}
 
-            {activeView === 'patterns' && (
-              <PatternsView
-                pattern={pattern}
-                onRecomputePattern={handleRecomputePattern}
-              />
-            )}
+              {activeView === 'patterns' && (
+                <PatternsView
+                  pattern={pattern}
+                  onRecomputePattern={handleRecomputePattern}
+                />
+              )}
 
-            {activeView === 'backlog' && (
-              <BacklogView
-                backlogTasks={backlogTasks}
-                onAddTask={handleAddTask}
-                onScheduleTask={handleScheduleTask}
-                onDeleteTask={handleDeleteTask}
-              />
-            )}
+              {activeView === 'backlog' && (
+                <BacklogView
+                  backlogTasks={backlogTasks}
+                  onAddTask={handleAddTask}
+                  onScheduleTask={handleScheduleTask}
+                  onDeleteTask={handleDeleteTask}
+                />
+              )}
 
-            {activeView === 'history' && (
-              <LogHistoryView
-                selectedDate={selectedDate}
-                onSelectDate={setSelectedDate}
-                dailyLog={dailyLog}
-                onSaveReflection={handleSaveReflection}
-              />
-            )}
-          </div>
+              {activeView === 'history' && (
+                <LogHistoryView
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                  dailyLog={dailyLog}
+                  onSaveReflection={handleSaveReflection}
+                />
+              )}
+            </div>
+          )}
         </main>
       </div>
 
       {/* AUTH MODAL */}
       <AuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => {
+          if (currentUser) setShowAuthModal(false);
+        }}
         onAuthSuccess={handleAuthSuccess}
       />
 
