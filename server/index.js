@@ -7,7 +7,6 @@ import cors from 'cors';
 
 import { dbEngine } from './db.js';
 import { initializeCronJobs } from './jobs/cron.js';
-import { verifyToken, hashPassword, verifyPassword, createToken } from './utils/authUtils.js';
 
 import tasksRouter from './routes/tasks.js';
 import eventsRouter from './routes/events.js';
@@ -20,10 +19,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 
-await dbEngine.ensureDefaultUser();
-await initializeCronJobs();
+// Safe non-blocking initialization
+(async () => {
+  try {
+    await dbEngine.ensureDefaultUser();
+  } catch (err) {
+    console.warn('⚠️ Warning: dbEngine default user check failed:', err.message);
+  }
+  try {
+    await initializeCronJobs();
+  } catch (err) {
+    console.warn('⚠️ Warning: Cron job scheduler initialization failed:', err.message);
+  }
+})();
 
 const app = express();
 app.use(cors());
