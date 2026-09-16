@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
-  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock
+  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock, Bell
 } from 'lucide-react';
+import { requestNotificationPermission, startTaskNotificationScheduler, sendDesktopNotification } from './utils/notifications';
 
 import TodayView from './components/TodayView';
 import PatternsView from './components/PatternsView';
@@ -92,6 +93,31 @@ export default function App() {
     setShowAuthModal(true);
     showToast('Logged out');
   };
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    () => typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted'
+  );
+
+  const handleEnableNotifications = async () => {
+    const granted = await requestNotificationPermission();
+    setNotificationsEnabled(granted);
+    if (granted) {
+      sendDesktopNotification('DailyOS Notifications Enabled 🔔', {
+        body: 'You will receive desktop alerts when your scheduled tasks are due.'
+      });
+      showToast('Desktop notifications enabled!');
+    } else {
+      showToast('Notification permission denied');
+    }
+  };
+
+  // Task Notification Scheduler effect
+  useEffect(() => {
+    if (notificationsEnabled && tasks.length > 0) {
+      const stopScheduler = startTaskNotificationScheduler(tasks);
+      return () => stopScheduler();
+    }
+  }, [notificationsEnabled, tasks]);
 
   // Fetch data when date, view, or auth changes
   useEffect(() => {
@@ -451,8 +477,21 @@ export default function App() {
             )}
           </div>
 
-          {/* USER ACCOUNT BADGE */}
+          {/* USER ACCOUNT BADGE & NOTIFICATION TOGGLE */}
           <div className="flex items-center gap-3">
+            {/* Desktop Notification Bell Button */}
+            <button
+              onClick={handleEnableNotifications}
+              title={notificationsEnabled ? 'Desktop Notifications Active' : 'Click to Enable Desktop Notifications'}
+              className={`p-1.5 rounded-lg border transition-all ${
+                notificationsEnabled
+                  ? 'bg-[#D4A24C]/20 border-[#D4A24C]/40 text-[#D4A24C]'
+                  : 'bg-[#24221F] border-[#33302B] text-[#9E9A92] hover:text-[#E8E6E3]'
+              }`}
+            >
+              <Bell className="w-4 h-4" />
+            </button>
+
             {currentUser ? (
               <div className="flex items-center gap-2 text-xs text-[#9E9A92]">
                 <User className="w-3.5 h-3.5 text-[#D4A24C]" />
