@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
-  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock, Bell, ListTodo
+  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock, Bell, ListTodo, Settings, Sun, Moon
 } from 'lucide-react';
 import { requestNotificationPermission, startTaskNotificationScheduler, sendDesktopNotification } from './utils/notifications';
 
@@ -10,13 +10,34 @@ import PatternsView from './components/PatternsView';
 import BacklogView from './components/BacklogView';
 import LogHistoryView from './components/LogHistoryView';
 import UndoneTasksView from './components/UndoneTasksView';
+import SettingsView from './components/SettingsView';
 import LandingPage from './components/LandingPage';
 import CompletionModal from './components/CompletionModal';
 import AuthModal from './components/AuthModal';
 
 export default function App() {
-  const [activeView, setActiveView] = useState('today'); // today | undone | patterns | backlog | history
+  const [activeView, setActiveView] = useState('today'); // today | undone | patterns | backlog | history | settings
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  // Theme State ('dark' | 'light')
+  const [theme, setTheme] = useState(() => localStorage.getItem('dailyos_theme') || 'dark');
+
+  useEffect(() => {
+    localStorage.setItem('dailyos_theme', theme);
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    }
+  }, [theme]);
+
+  const handleToggleTheme = (newTheme) => {
+    const nextTheme = newTheme || (theme === 'dark' ? 'light' : 'dark');
+    setTheme(nextTheme);
+    showToast(`Switched to ${nextTheme === 'light' ? 'Light Sky' : 'Dark Journal'} theme`);
+  };
 
   // Auth State
   const [currentUser, setCurrentUser] = useState(() => {
@@ -341,7 +362,6 @@ export default function App() {
             setShowAuthModal(true);
           }}
           onTryDemo={() => {
-            // Demo mode: sets temporary mock user for previewing dashboard
             const demoUser = { id: 'demo-user-123', email: 'demo@dailyos.local' };
             setCurrentUser(demoUser);
             setAuthToken('demo-token-123');
@@ -359,18 +379,18 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#1C1B19] text-[#E8E6E3]">
+    <div className={`flex h-screen overflow-hidden ${theme === 'light' ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#1C1B19] text-[#E8E6E3]'}`}>
       {/* SIDEBAR */}
-      <aside className="w-64 border-r border-[#33302B] bg-[#1C1B19] flex flex-col justify-between p-6 shrink-0 hidden md:flex">
+      <aside className={`w-64 border-r flex flex-col justify-between p-6 shrink-0 hidden md:flex ${theme === 'light' ? 'bg-[#FFFFFF] border-slate-200' : 'bg-[#1C1B19] border-[#33302B]'}`}>
         <div className="space-y-8">
           {/* LOGO / JOURNAL TITLE */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#24221F] border border-[#33302B] flex items-center justify-center text-[#D4A24C]">
+            <div className={`w-8 h-8 rounded-lg border flex items-center justify-center ${theme === 'light' ? 'bg-slate-100 border-slate-200 text-[#0284C7]' : 'bg-[#24221F] border-[#33302B] text-[#D4A24C]'}`}>
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="font-journal text-xl font-normal text-[#E8E6E3] tracking-tight">DailyOS</h1>
-              <p className="text-[10px] text-[#9E9A92] uppercase tracking-wider font-semibold">Personal Journal</p>
+              <h1 className={`font-journal text-xl font-normal tracking-tight ${theme === 'light' ? 'text-slate-900' : 'text-[#E8E6E3]'}`}>DailyOS</h1>
+              <p className={`text-[10px] uppercase tracking-wider font-semibold ${theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'}`}>Personal Journal</p>
             </div>
           </div>
 
@@ -382,6 +402,7 @@ export default function App() {
               { id: 'patterns', label: 'Analytics', icon: PieChart },
               { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
               { id: 'history', label: 'Log History', icon: History },
+              { id: 'settings', label: 'Settings', icon: Settings },
             ].map((item) => {
               const Icon = item.icon;
               const isActive = activeView === item.id;
@@ -392,8 +413,12 @@ export default function App() {
                   onClick={() => setActiveView(item.id)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all ${
                     isActive 
-                      ? 'bg-[#24221F] text-[#D4A24C] border border-[#33302B] font-semibold' 
-                      : 'text-[#9E9A92] hover:text-[#E8E6E3] hover:bg-[#24221F]/40'
+                      ? theme === 'light'
+                        ? 'bg-sky-50 text-[#0284C7] border border-sky-200 font-semibold'
+                        : 'bg-[#24221F] text-[#D4A24C] border border-[#33302B] font-semibold' 
+                      : theme === 'light'
+                        ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                        : 'text-[#9E9A92] hover:text-[#E8E6E3] hover:bg-[#24221F]/40'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -402,7 +427,9 @@ export default function App() {
                   </div>
                   {item.badge !== undefined && item.badge > 0 && (
                     <span className={`px-2 py-0.5 text-[10px] rounded ${
-                      isActive ? 'bg-[#D4A24C]/20 text-[#D4A24C]' : 'bg-[#24221F] text-[#9E9A92]'
+                      isActive 
+                        ? theme === 'light' ? 'bg-sky-100 text-[#0284C7]' : 'bg-[#D4A24C]/20 text-[#D4A24C]' 
+                        : theme === 'light' ? 'bg-slate-100 text-slate-500' : 'bg-[#24221F] text-[#9E9A92]'
                     }`}>
                       {item.badge}
                     </span>
@@ -415,28 +442,28 @@ export default function App() {
 
         {/* ACCOUNT / SYSTEM STATUS BOX */}
         <div className="space-y-3">
-          <div className="bg-[#24221F] p-3.5 rounded-lg border border-[#33302B] space-y-2">
+          <div className={`p-3.5 rounded-lg border space-y-2 ${theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#24221F] border-[#33302B]'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
-                <User className="w-3.5 h-3.5 text-[#D4A24C] shrink-0" />
-                <span className="text-xs text-[#E8E6E3] truncate">{currentUser.email}</span>
+                <User className={`w-3.5 h-3.5 shrink-0 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`} />
+                <span className={`text-xs truncate ${theme === 'light' ? 'text-slate-800' : 'text-[#E8E6E3]'}`}>{currentUser.email}</span>
               </div>
               <button
                 onClick={handleLogout}
                 title="Sign Out"
-                className="text-[#9E9A92] hover:text-rose-400 transition-colors p-1"
+                className="text-slate-400 hover:text-rose-500 transition-colors p-1"
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          <div className="bg-[#24221F] p-2.5 rounded-lg border border-[#33302B] text-[11px] flex items-center justify-between text-[#9E9A92]">
+          <div className={`p-2.5 rounded-lg border text-[11px] flex items-center justify-between ${theme === 'light' ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-[#24221F] border-[#33302B] text-[#9E9A92]'}`}>
             <div className="flex items-center gap-2">
-              <Database className="w-3 h-3 text-[#D4A24C]" />
+              <Database className={`w-3 h-3 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`} />
               <span className="capitalize">{dbMode} DB</span>
             </div>
-            <span className="w-2 h-2 rounded-full bg-[#D4A24C]" />
+            <span className={`w-2 h-2 rounded-full ${theme === 'light' ? 'bg-[#0284C7]' : 'bg-[#D4A24C]'}`} />
           </div>
         </div>
       </aside>
@@ -444,7 +471,7 @@ export default function App() {
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* HEADER */}
-        <header className="h-16 border-b border-[#33302B] px-6 flex items-center justify-between bg-[#1C1B19] shrink-0">
+        <header className={`h-16 border-b px-6 flex items-center justify-between shrink-0 ${theme === 'light' ? 'bg-[#FFFFFF] border-slate-200' : 'bg-[#1C1B19] border-[#33302B]'}`}>
           {/* MOBILE NAV TABS */}
           <div className="flex items-center gap-1 md:hidden">
             {[
@@ -453,13 +480,14 @@ export default function App() {
               { id: 'patterns', icon: PieChart },
               { id: 'backlog', icon: Inbox },
               { id: 'history', icon: History },
+              { id: 'settings', icon: Settings },
             ].map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveView(item.id)}
-                  className={`p-2 rounded-lg ${activeView === item.id ? 'bg-[#24221F] text-[#D4A24C]' : 'text-[#9E9A92]'}`}
+                  className={`p-2 rounded-lg ${activeView === item.id ? (theme === 'light' ? 'bg-sky-100 text-[#0284C7]' : 'bg-[#24221F] text-[#D4A24C]') : 'text-slate-400'}`}
                 >
                   <Icon className="w-4 h-4" />
                 </button>
@@ -471,56 +499,69 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => changeDate(-1)}
-              className="p-1.5 rounded-lg bg-[#24221F] hover:bg-[#292723] text-[#9E9A92] hover:text-[#E8E6E3] transition-colors border border-[#33302B]"
+              className={`p-1.5 rounded-lg transition-colors border ${theme === 'light' ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200' : 'bg-[#24221F] hover:bg-[#292723] text-[#9E9A92] hover:text-[#E8E6E3] border-[#33302B]'}`}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-2 bg-[#24221F] px-3.5 py-1.5 rounded-lg border border-[#33302B] text-xs font-semibold text-[#E8E6E3]">
-              <CalendarIcon className="w-3.5 h-3.5 text-[#D4A24C]" />
+            <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg border text-xs font-semibold ${theme === 'light' ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-[#24221F] border-[#33302B] text-[#E8E6E3]'}`}>
+              <CalendarIcon className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`} />
               <span className="font-mono">{selectedDate}</span>
               {isTodaySelected && (
-                <span className="px-1.5 py-0.2 bg-[#D4A24C]/20 text-[#D4A24C] rounded text-[10px] uppercase font-bold tracking-wider">
+                <span className={`px-1.5 py-0.2 rounded text-[10px] uppercase font-bold tracking-wider ${theme === 'light' ? 'bg-sky-100 text-[#0284C7]' : 'bg-[#D4A24C]/20 text-[#D4A24C]'}`}>
                   Today
                 </span>
               )}
             </div>
             <button
               onClick={() => changeDate(1)}
-              className="p-1.5 rounded-lg bg-[#24221F] hover:bg-[#292723] text-[#9E9A92] hover:text-[#E8E6E3] transition-colors border border-[#33302B]"
+              className={`p-1.5 rounded-lg transition-colors border ${theme === 'light' ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200' : 'bg-[#24221F] hover:bg-[#292723] text-[#9E9A92] hover:text-[#E8E6E3] border-[#33302B]'}`}
             >
               <ChevronRight className="w-4 h-4" />
             </button>
             {!isTodaySelected && (
               <button
                 onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-                className="text-xs text-[#D4A24C] font-semibold hover:underline ml-2"
+                className={`text-xs font-semibold hover:underline ml-2 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`}
               >
                 Go to Today
               </button>
             )}
           </div>
 
-          {/* USER ACCOUNT BADGE & NOTIFICATION TOGGLE */}
+          {/* USER ACCOUNT BADGE & THEME / NOTIFICATION CONTROLS */}
           <div className="flex items-center gap-3">
+            {/* Quick Theme Switcher Button */}
+            <button
+              onClick={() => handleToggleTheme()}
+              title={theme === 'dark' ? 'Switch to Light Sky Theme' : 'Switch to Dark Journal Theme'}
+              className={`p-1.5 rounded-lg border transition-all ${
+                theme === 'light'
+                  ? 'bg-sky-50 border-sky-200 text-[#0284C7]'
+                  : 'bg-[#24221F] border-[#33302B] text-[#D4A24C]'
+              }`}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
             {/* Desktop Notification Bell Button */}
             <button
               onClick={handleEnableNotifications}
               title={notificationsEnabled ? 'Desktop Notifications Active' : 'Click to Enable Desktop Notifications'}
               className={`p-1.5 rounded-lg border transition-all ${
                 notificationsEnabled
-                  ? 'bg-[#D4A24C]/20 border-[#D4A24C]/40 text-[#D4A24C]'
-                  : 'bg-[#24221F] border-[#33302B] text-[#9E9A92] hover:text-[#E8E6E3]'
+                  ? theme === 'light' ? 'bg-sky-100 border-sky-200 text-[#0284C7]' : 'bg-[#D4A24C]/20 border-[#D4A24C]/40 text-[#D4A24C]'
+                  : theme === 'light' ? 'bg-slate-100 border-slate-200 text-slate-500' : 'bg-[#24221F] border-[#33302B] text-[#9E9A92]'
               }`}
             >
               <Bell className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2 text-xs text-[#9E9A92]">
-              <User className="w-3.5 h-3.5 text-[#D4A24C]" />
-              <span className="hidden sm:inline text-[#E8E6E3] font-medium">{currentUser.email}</span>
+              <User className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`} />
+              <span className={`hidden sm:inline font-medium ${theme === 'light' ? 'text-slate-800' : 'text-[#E8E6E3]'}`}>{currentUser.email}</span>
               <button
                 onClick={handleLogout}
-                className="text-xs text-[#9E9A92] hover:text-rose-400 font-medium ml-1"
+                className="text-xs text-[#9E9A92] hover:text-rose-500 font-medium ml-1"
               >
                 Log Out
               </button>
@@ -528,7 +569,7 @@ export default function App() {
 
             {/* TOAST NOTIFICATION */}
             {toastMessage && (
-              <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-[#24221F] border border-[#D4A24C]/40 text-[#D4A24C] text-xs rounded-lg animate-fadeIn">
+              <div className={`hidden sm:flex items-center gap-2 px-3.5 py-1.5 border text-xs rounded-lg animate-fadeIn ${theme === 'light' ? 'bg-sky-50 border-sky-200 text-[#0284C7]' : 'bg-[#24221F] border-[#D4A24C]/40 text-[#D4A24C]'}`}>
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>{toastMessage}</span>
               </div>
@@ -584,6 +625,18 @@ export default function App() {
                 onSelectDate={setSelectedDate}
                 dailyLog={dailyLog}
                 onSaveReflection={handleSaveReflection}
+              />
+            )}
+
+            {activeView === 'settings' && (
+              <SettingsView
+                theme={theme}
+                onToggleTheme={handleToggleTheme}
+                notificationsEnabled={notificationsEnabled}
+                onToggleNotifications={handleEnableNotifications}
+                currentUser={currentUser}
+                tasks={tasks}
+                events={events}
               />
             )}
           </div>
