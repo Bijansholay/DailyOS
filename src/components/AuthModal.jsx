@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, LogIn, UserPlus, X, AlertCircle } from 'lucide-react';
 
-export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
-  const [isRegister, setIsRegister] = useState(false);
+export default function AuthModal({ isOpen, initialRegister = false, onClose, onAuthSuccess }) {
+  const [isRegister, setIsRegister] = useState(initialRegister);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setIsRegister(initialRegister);
+  }, [initialRegister, isOpen]);
 
   if (!isOpen) return null;
 
