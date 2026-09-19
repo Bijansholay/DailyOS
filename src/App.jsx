@@ -405,82 +405,118 @@ export default function App() {
       <div className={`w-full transition-all ${
         theme === 'light'
           ? 'flex flex-col min-h-screen'
-          : 'max-w-7xl bg-[#121114] text-white rounded-[28px] shadow-2xl border border-[#2D273C] overflow-hidden flex flex-col md:flex-row h-[92vh] max-h-[920px] relative'
+          : 'max-w-7xl bg-[#121114] text-white rounded-2xl sm:rounded-[28px] shadow-2xl border border-[#2D273C] overflow-hidden flex flex-col md:flex-row min-h-[90vh] md:h-[92vh] md:max-h-[920px] relative'
       }`}>
-        {/* SIDEBAR NAVIGATION */}
+        {/* SIDEBAR / TOP NAVIGATION */}
         {theme === 'light' ? (
           /* LIGHT MODE: Top Plain Wordmark & Text-Only Horizontal Nav Bar (Reference B) */
-          <header className="bg-white border-b border-[#E4E4E7] px-6 md:px-10 h-16 flex items-center justify-between shrink-0 sticky top-0 z-30">
-            <div className="flex items-center gap-10">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
-                  D
+          <>
+            <header className="bg-white border-b border-[#E4E4E7] px-4 md:px-10 h-16 flex items-center justify-between shrink-0 sticky top-0 z-30">
+              <div className="flex items-center gap-6 md:gap-10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
+                    D
+                  </div>
+                  <span className="font-bold text-lg tracking-tight text-[#09090B]">DailyOS</span>
                 </div>
-                <span className="font-bold text-lg tracking-tight text-[#09090B]">DailyOS</span>
+
+                {/* Text-only nav tabs for Desktop (Reference B) */}
+                <nav className="hidden md:flex items-center gap-6">
+                  {[
+                    { id: 'today', label: 'Day Planner', badge: tasks.length },
+                    { id: 'undone', label: 'Undone Tasks', badge: undoneCount },
+                    { id: 'patterns', label: 'Analytics' },
+                    { id: 'backlog', label: 'Backlog', badge: backlogTasks.length },
+                    { id: 'history', label: 'Log History' },
+                    { id: 'settings', label: 'Settings' },
+                  ].map((item) => {
+                    const isActive = activeView === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveView(item.id)}
+                        className={`py-5 text-sm transition-all relative flex items-center gap-1.5 ${
+                          isActive
+                            ? 'font-bold text-[#09090B] border-b-2 border-[#09090B]'
+                            : 'font-medium text-slate-500 hover:text-[#09090B]'
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className={`px-1.5 py-0.2 text-[10px] rounded-full font-mono font-semibold ${
+                            isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </nav>
               </div>
 
-              {/* Text-only nav tabs (Reference B) */}
-              <nav className="hidden md:flex items-center gap-6">
-                {[
-                  { id: 'today', label: 'Day Planner', badge: tasks.length },
-                  { id: 'undone', label: 'Undone Tasks', badge: undoneCount },
-                  { id: 'patterns', label: 'Analytics' },
-                  { id: 'backlog', label: 'Backlog', badge: backlogTasks.length },
-                  { id: 'history', label: 'Log History' },
-                  { id: 'settings', label: 'Settings' },
-                ].map((item) => {
-                  const isActive = activeView === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveView(item.id)}
-                      className={`py-5 text-sm transition-all relative flex items-center gap-1.5 ${
-                        isActive
-                          ? 'font-bold text-[#09090B] border-b-2 border-[#09090B]'
-                          : 'font-medium text-slate-500 hover:text-[#09090B]'
-                      }`}
-                    >
-                      <span>{item.label}</span>
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span className={`px-1.5 py-0.2 text-[10px] rounded-full font-mono font-semibold ${
-                          isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
-                        }`}>
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* Right Header Controls */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => handleToggleTheme('dark')}
-                title="Switch to Reference A Dark Mode"
-                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
-              >
-                <Moon className="w-4 h-4" />
-              </button>
-              <button
-                onClick={handleEnableNotifications}
-                className={`p-2 rounded-full transition-all ${
-                  notificationsEnabled ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-slate-100 text-slate-600'
-                }`}
-              >
-                <Bell className="w-4 h-4" />
-              </button>
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
-                <span className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-800 text-xs">
-                  {currentUser.email ? currentUser.email.charAt(0).toUpperCase() : 'U'}
-                </span>
-                <button onClick={handleLogout} className="hover:text-rose-600 transition-colors">
-                  Logout
+              {/* Right Header Controls */}
+              <div className="flex items-center gap-3 md:gap-4">
+                <button
+                  onClick={() => handleToggleTheme('dark')}
+                  title="Switch to Reference A Dark Mode"
+                  className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
+                >
+                  <Moon className="w-4 h-4" />
                 </button>
+                <button
+                  onClick={handleEnableNotifications}
+                  className={`p-2 rounded-full transition-all ${
+                    notificationsEnabled ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  <Bell className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                  <span className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-800 text-xs">
+                    {currentUser.email ? currentUser.email.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                  <button onClick={handleLogout} className="hidden sm:inline hover:text-rose-600 transition-colors">
+                    Logout
+                  </button>
+                </div>
               </div>
+            </header>
+
+            {/* LIGHT MODE MOBILE SUB-NAV TAB STRIP */}
+            <div className="md:hidden bg-white border-b border-[#E4E4E7] px-4 py-2.5 flex items-center gap-2 overflow-x-auto whitespace-nowrap sticky top-16 z-20 shadow-sm shrink-0 scrollbar-none">
+              {[
+                { id: 'today', label: 'Day Planner', badge: tasks.length },
+                { id: 'undone', label: 'Undone Tasks', badge: undoneCount },
+                { id: 'patterns', label: 'Analytics' },
+                { id: 'backlog', label: 'Backlog', badge: backlogTasks.length },
+                { id: 'history', label: 'Log History' },
+                { id: 'settings', label: 'Settings' },
+              ].map((item) => {
+                const isActive = activeView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveView(item.id)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
+                      isActive
+                        ? 'bg-[#09090B] text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {item.badge !== undefined && item.badge > 0 && (
+                      <span className={`px-1.5 py-0.2 text-[9px] rounded-full font-mono font-bold ${
+                        isActive ? 'bg-white text-[#09090B]' : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
-          </header>
+          </>
         ) : (
           /* DARK MODE: Compact Icon-Only Vertical Sidebar (Reference A) */
           <aside className="w-20 bg-[#0C0B0E] border-r border-[#1F192E] flex flex-col items-center justify-between py-6 shrink-0 hidden md:flex">
@@ -548,49 +584,95 @@ export default function App() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* HEADER BAR FOR DARK MODE */}
           {theme === 'dark' && (
-            <header className="h-16 border-b border-[#1F192E] px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#121114]">
-              {/* Search Pill (Reference A) */}
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1C1924] border border-[#2D273C] text-xs text-slate-300 w-52 sm:w-72">
-                <span className="text-slate-500">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Search tasks or entries..."
-                  className="bg-transparent border-none outline-none text-xs text-white placeholder-slate-500 w-full"
-                />
-              </div>
+            <>
+              <header className="h-16 border-b border-[#1F192E] px-4 md:px-8 flex items-center justify-between shrink-0 bg-[#121114]">
+                {/* Search Pill (Reference A) */}
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-[#1C1924] border border-[#2D273C] text-xs text-slate-300 w-44 sm:w-72">
+                  <span className="text-slate-500">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search tasks..."
+                    className="bg-transparent border-none outline-none text-xs text-white placeholder-slate-500 w-full"
+                  />
+                </div>
 
-              {/* Status Text & Avatar Cluster (Reference A) */}
-              <div className="flex items-center gap-4">
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#1C1924] border border-[#2D273C] text-xs">
-                  <div className="flex -space-x-1.5 overflow-hidden">
-                    <span className="inline-block h-5 w-5 rounded-full ring-2 ring-[#121114] bg-purple-500 text-[9px] font-bold text-white text-center leading-5">A</span>
-                    <span className="inline-block h-5 w-5 rounded-full ring-2 ring-[#121114] bg-indigo-500 text-[9px] font-bold text-white text-center leading-5">B</span>
+                {/* Status Text & Controls (Reference A) */}
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#1C1924] border border-[#2D273C] text-xs">
+                    <div className="flex -space-x-1.5 overflow-hidden">
+                      <span className="inline-block h-5 w-5 rounded-full ring-2 ring-[#121114] bg-purple-500 text-[9px] font-bold text-white text-center leading-5">A</span>
+                      <span className="inline-block h-5 w-5 rounded-full ring-2 ring-[#121114] bg-indigo-500 text-[9px] font-bold text-white text-center leading-5">B</span>
+                    </div>
+                    <span className="font-semibold text-slate-200">
+                      {tasks.filter(t => t.status === 'done').length} of {tasks.length} done
+                    </span>
+                    {undoneCount > 0 && (
+                      <span className="text-rose-400 font-bold ml-1">• {undoneCount} pending</span>
+                    )}
                   </div>
-                  <span className="font-semibold text-slate-200">
-                    {tasks.filter(t => t.status === 'done').length} of {tasks.length} tasks done
-                  </span>
-                  {undoneCount > 0 && (
-                    <span className="text-rose-400 font-bold ml-1">• {undoneCount} pending</span>
-                  )}
-                </div>
 
-                <button
-                  onClick={handleEnableNotifications}
-                  className={`p-2 rounded-full border transition-all ${
-                    notificationsEnabled ? 'bg-purple-900/30 border-purple-500/40 text-purple-400' : 'bg-[#1C1924] border-[#2D273C] text-slate-400'
-                  }`}
-                >
-                  <Bell className="w-4 h-4" />
-                </button>
+                  {/* Sun Theme Switcher for Mobile Dark Mode */}
+                  <button
+                    onClick={() => handleToggleTheme('light')}
+                    title="Switch to Reference B Light Mode"
+                    className="md:hidden p-2 rounded-full bg-[#1C1924] text-[#FACC15] border border-[#2D273C]"
+                  >
+                    <Sun className="w-4 h-4" />
+                  </button>
 
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
-                  <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
-                    {currentUser.email ? currentUser.email.charAt(0).toUpperCase() : 'U'}
-                  </span>
-                  <span className="hidden lg:inline">{currentUser.email}</span>
+                  <button
+                    onClick={handleEnableNotifications}
+                    className={`p-2 rounded-full border transition-all ${
+                      notificationsEnabled ? 'bg-purple-900/30 border-purple-500/40 text-purple-400' : 'bg-[#1C1924] border-[#2D273C] text-slate-400'
+                    }`}
+                  >
+                    <Bell className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
+                    <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
+                      {currentUser.email ? currentUser.email.charAt(0).toUpperCase() : 'U'}
+                    </span>
+                  </div>
                 </div>
+              </header>
+
+              {/* DARK MODE MOBILE SUB-NAV TAB STRIP */}
+              <div className="md:hidden bg-[#0C0B0E] border-b border-[#1F192E] px-4 py-2.5 flex items-center gap-2 overflow-x-auto whitespace-nowrap z-20 shrink-0 scrollbar-none">
+                {[
+                  { id: 'today', label: 'Day Planner', icon: LayoutDashboard, badge: tasks.length },
+                  { id: 'undone', label: 'Undone Tasks', icon: ListTodo, badge: undoneCount },
+                  { id: 'patterns', label: 'Analytics', icon: PieChart },
+                  { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
+                  { id: 'history', label: 'Log History', icon: History },
+                  { id: 'settings', label: 'Settings', icon: Settings },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveView(item.id)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
+                        isActive
+                          ? 'bg-[#1C1924] text-[#A855F7] border border-[#2D273C] shadow-md shadow-purple-950/40'
+                          : 'bg-[#16141B] text-slate-400 border border-transparent hover:text-white'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{item.label}</span>
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className={`px-1.5 py-0.2 text-[9px] rounded-full font-mono font-bold ${
+                          isActive ? 'bg-[#9333EA] text-white' : 'bg-[#2D273C] text-slate-300'
+                        }`}>
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-            </header>
+            </>
           )}
 
           {/* MAIN CONTAINER Scrollable */}
