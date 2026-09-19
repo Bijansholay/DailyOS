@@ -647,22 +647,23 @@ export default function App() {
           </div>
         </main>
       </div>
-
-      {/* AUTH MODAL */}
-      <AuthModal
-        isOpen={showAuthModal}
-        initialRegister={authModalRegister}
-        onClose={() => setShowAuthModal(false)}
-        onAuthSuccess={handleAuthSuccess}
-      />
-
-      {/* COMPLETION MODAL */}
-      <CompletionModal
-        isOpen={!!completionModalTask}
-        task={completionModalTask}
-        onClose={() => setCompletionModalTask(null)}
-        onSubmit={handleCompletionSubmit}
-      />
     </div>
-  );
+
+    {/* AUTH MODAL */}
+    <AuthModal
+      isOpen={showAuthModal}
+      initialRegister={authModalRegister}
+      onClose={() => setShowAuthModal(false)}
+      onAuthSuccess={handleAuthSuccess}
+    />
+
+    {/* COMPLETION MODAL */}
+    <CompletionModal
+      isOpen={!!completionModalTask}
+      task={completionModalTask}
+      onClose={() => setCompletionModalTask(null)}
+      onSubmit={handleCompletionSubmit}
+    />
+  </div>
+);
 }
