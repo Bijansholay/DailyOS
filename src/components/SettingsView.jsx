@@ -60,24 +60,25 @@ export default function SettingsView({
             onClick={() => onToggleTheme('dark')}
             className={`p-4 rounded-xl text-left border transition-all flex flex-col justify-between space-y-3 ${
               theme === 'dark'
-                ? 'bg-[#24221F] border-[#D4A24C] shadow-lg shadow-[#D4A24C]/10'
-                : 'bg-[#1C1B19] border-[#33302B] hover:border-[#66625B]'
+                ? 'bg-[#141220] border-[#A855F7] shadow-lg shadow-[#A855F7]/10 ring-2 ring-[#A855F7]/20 text-[#F5F3FF]'
+                : 'bg-[#08070D] border-[#27213A] hover:border-[#393054]'
             }`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Moon className="w-4 h-4 text-[#D4A24C]" />
-                <span className="font-semibold text-sm text-[#E8E6E3]">Dark Journal (Default)</span>
+                <Moon className="w-4 h-4 text-[#A855F7]" />
+                <span className={`font-semibold text-sm ${theme === 'dark' ? 'text-[#F5F3FF]' : 'text-[#948F9E]'}`}>Nixtio Midnight Violet</span>
               </div>
-              {theme === 'dark' && <Check className="w-4 h-4 text-[#D4A24C]" />}
+              {theme === 'dark' && <Check className="w-4 h-4 text-[#A855F7]" />}
             </div>
-            <p className="text-xs text-[#9E9A92]">
-              Warm neutral base (<code className="text-[#D4A24C]">#1C1B19</code>) with Amber/Ochre energy accent.
+            <p className={`text-xs ${theme === 'dark' ? 'text-[#DDD6FE]' : 'text-[#948F9E]'}`}>
+              OLED pitch black (<code className="text-[#A855F7]">#08070D</code>) with Midnight Violet cards, Electric Purple & Ochre Yellow accents.
             </p>
             <div className="flex items-center gap-2 pt-1">
-              <span className="w-4 h-4 rounded-full bg-[#1C1B19] border border-[#33302B]" />
-              <span className="w-4 h-4 rounded-full bg-[#24221F] border border-[#33302B]" />
-              <span className="w-4 h-4 rounded-full bg-[#D4A24C]" />
+              <span className="w-4 h-4 rounded-full bg-[#08070D] border border-[#27213A]" title="OLED Canvas (#08070D)" />
+              <span className="w-4 h-4 rounded-full bg-[#141220] border border-[#27213A]" title="Midnight Slate (#141220)" />
+              <span className="w-4 h-4 rounded-full bg-[#A855F7]" title="Neon Violet Accent (#A855F7)" />
+              <span className="w-4 h-4 rounded-full bg-[#FACC15]" title="Ochre Yellow Accent (#FACC15)" />
             </div>
           </button>
 

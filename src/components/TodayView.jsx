@@ -144,25 +144,25 @@ export default function TodayView({
       {/* DAY JOURNAL HEADER */}
       <div 
         className={`border-b pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 transition-colors ${
-          theme === 'light' ? 'border-slate-200/80' : 'border-[#33302B]'
+          theme === 'light' ? 'border-slate-200/80' : 'border-[#27213A]'
         }`}
         title="Component: <JournalHeader /> — Renders date, completed task metrics, and entry triggers"
       >
         <div>
           <span className={`text-xs font-semibold tracking-widest uppercase ${
-            theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'
+            theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'
           }`}>
             Day Planner
           </span>
           <h1 className={`font-journal text-3xl md:text-4xl font-normal tracking-tight mt-1 ${
-            theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#E8E6E3]'
+            theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#F5F3FF]'
           }`}>
             {formattedJournalDate}
           </h1>
         </div>
         <div className="flex items-center gap-3">
           <span className={`text-xs font-medium ${
-            theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'
+            theme === 'light' ? 'text-slate-500' : 'text-[#948F9E]'
           }`} title="Function: Completion Progress Metric">
             {completedCount} of {tasks.length} tasks completed
           </span>
@@ -172,7 +172,7 @@ export default function TodayView({
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold shadow-sm transition-all ${
               theme === 'light'
                 ? 'bg-[#18181B] hover:bg-black text-white'
-                : 'bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19]'
+                : 'bg-[#A855F7] hover:bg-[#9333EA] text-white shadow-lg shadow-purple-600/30'
             }`}
           >
             <Plus className="w-4 h-4" />
@@ -186,13 +186,13 @@ export default function TodayView({
         className={`journal-card rounded-2xl p-6 relative group transition-all ${
           theme === 'light'
             ? 'border-l-4 border-l-[#0284C7] bg-gradient-to-r from-sky-50 to-white shadow-sm'
-            : 'border-l-4 border-l-[#D4A24C]'
+            : 'border-l-4 border-l-[#A855F7] bg-gradient-to-r from-[#A855F7]/15 via-[#9333EA]/5 to-[#141220] shadow-lg shadow-purple-950/20'
         }`}
         title="Component: <AIScheduleInsight /> — Generates plain-text energy-window analysis using Google Gemini API"
       >
         <div className="flex items-start justify-between gap-4">
           <p className={`text-sm md:text-base leading-relaxed font-serif italic ${
-            theme === 'light' ? 'text-slate-800' : 'text-[#E8E6E3]'
+            theme === 'light' ? 'text-slate-800' : 'text-[#F5F3FF]'
           }`}>
             "{aiSummary?.insight || "Your afternoon fits best for deep focus — you complete 80% of tasks planned in your peak window."}"
           </p>
@@ -201,7 +201,7 @@ export default function TodayView({
             disabled={isGeneratingBrief}
             title="Action: Triggers Google Gemini schedule optimization briefing"
             className={`transition-colors p-1 shrink-0 ${
-              theme === 'light' ? 'text-slate-400 hover:text-[#0284C7]' : 'text-[#9E9A92] hover:text-[#D4A24C]'
+              theme === 'light' ? 'text-slate-400 hover:text-[#0284C7]' : 'text-[#948F9E] hover:text-[#A855F7]'
             }`}
           >
             <RefreshCw className={`w-4 h-4 ${isGeneratingBrief ? 'animate-spin' : ''}`} />

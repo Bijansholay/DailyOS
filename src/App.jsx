@@ -379,18 +379,18 @@ export default function App() {
   }
 
   return (
-    <div className={`flex h-screen overflow-hidden ${theme === 'light' ? 'bg-[#EBF0F5] text-slate-900' : 'bg-[#1C1B19] text-[#E8E6E3]'}`}>
+    <div className={`flex h-screen overflow-hidden ${theme === 'light' ? 'bg-[#EBF0F5] text-slate-900' : 'bg-[#08070D] text-[#F5F3FF]'}`}>
       {/* SIDEBAR */}
-      <aside className={`w-64 border-r flex flex-col justify-between p-6 shrink-0 hidden md:flex transition-colors ${theme === 'light' ? 'bg-[#FFFFFF] border-slate-200/80 shadow-sm' : 'bg-[#1C1B19] border-[#33302B]'}`}>
+      <aside className={`w-64 border-r flex flex-col justify-between p-6 shrink-0 hidden md:flex transition-colors ${theme === 'light' ? 'bg-[#FFFFFF] border-slate-200/80 shadow-sm' : 'bg-[#0F0D18] border-[#27213A]'}`}>
         <div className="space-y-8">
           {/* LOGO / JOURNAL TITLE */}
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all ${theme === 'light' ? 'bg-sky-50 border-sky-100 text-[#0284C7]' : 'bg-[#24221F] border-[#33302B] text-[#D4A24C]'}`}>
+            <div className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all ${theme === 'light' ? 'bg-sky-50 border-sky-100 text-[#0284C7]' : 'bg-[#141220] border-[#27213A] text-[#A855F7] shadow-sm shadow-purple-900/30'}`}>
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <h1 className={`font-journal text-xl font-normal tracking-tight ${theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#E8E6E3]'}`}>DailyOS</h1>
-              <p className={`text-[10px] uppercase tracking-wider font-semibold ${theme === 'light' ? 'text-slate-400' : 'text-[#9E9A92]'}`}>Personal Journal</p>
+              <h1 className={`font-journal text-xl font-normal tracking-tight ${theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#F5F3FF]'}`}>DailyOS</h1>
+              <p className={`text-[10px] uppercase tracking-wider font-semibold ${theme === 'light' ? 'text-slate-400' : 'text-[#948F9E]'}`}>Personal Journal</p>
             </div>
           </div>
 
@@ -415,10 +415,10 @@ export default function App() {
                     isActive 
                       ? theme === 'light'
                         ? 'bg-[#18181B] text-white font-semibold shadow-md shadow-slate-900/10' 
-                        : 'bg-[#24221F] text-[#D4A24C] border border-[#33302B] font-semibold' 
+                        : 'bg-[#F3E8FF] text-[#08070D] font-bold shadow-lg shadow-purple-500/20' 
                       : theme === 'light'
                         ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
-                        : 'text-[#9E9A92] hover:text-[#E8E6E3] hover:bg-[#24221F]/40'
+                        : 'text-[#948F9E] hover:text-[#F5F3FF] hover:bg-[#1D192E]/60'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -428,8 +428,8 @@ export default function App() {
                   {item.badge !== undefined && item.badge > 0 && (
                     <span className={`px-2 py-0.5 text-[10px] rounded-full font-mono ${
                       isActive 
-                        ? theme === 'light' ? 'bg-white/20 text-white' : 'bg-[#D4A24C]/20 text-[#D4A24C]' 
-                        : theme === 'light' ? 'bg-slate-100 text-slate-600 border border-slate-200/60' : 'bg-[#24221F] text-[#9E9A92]'
+                        ? theme === 'light' ? 'bg-white/20 text-white' : 'bg-[#9333EA] text-white' 
+                        : theme === 'light' ? 'bg-slate-100 text-slate-600 border border-slate-200/60' : 'bg-[#141220] text-[#A855F7] border border-[#27213A]'
                     }`}>
                       {item.badge}
                     </span>
@@ -442,11 +442,11 @@ export default function App() {
 
         {/* ACCOUNT / SYSTEM STATUS BOX */}
         <div className="space-y-3">
-          <div className={`p-3.5 rounded-xl border space-y-2 transition-colors ${theme === 'light' ? 'bg-slate-50 border-slate-200/70' : 'bg-[#24221F] border-[#33302B]'}`}>
+          <div className={`p-3.5 rounded-xl border space-y-2 transition-colors ${theme === 'light' ? 'bg-slate-50 border-slate-200/70' : 'bg-[#141220] border-[#27213A]'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
-                <User className={`w-3.5 h-3.5 shrink-0 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`} />
-                <span className={`text-xs truncate ${theme === 'light' ? 'text-slate-800 font-medium' : 'text-[#E8E6E3]'}`}>{currentUser.email}</span>
+                <User className={`w-3.5 h-3.5 shrink-0 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`} />
+                <span className={`text-xs truncate ${theme === 'light' ? 'text-slate-800 font-medium' : 'text-[#F5F3FF]'}`}>{currentUser.email}</span>
               </div>
               <button
                 onClick={handleLogout}
@@ -458,12 +458,12 @@ export default function App() {
             </div>
           </div>
 
-          <div className={`p-2.5 rounded-xl border text-[11px] flex items-center justify-between transition-colors ${theme === 'light' ? 'bg-slate-50 border-slate-200/70 text-slate-500' : 'bg-[#24221F] border-[#33302B] text-[#9E9A92]'}`}>
+          <div className={`p-2.5 rounded-xl border text-[11px] flex items-center justify-between transition-colors ${theme === 'light' ? 'bg-slate-50 border-slate-200/70 text-slate-500' : 'bg-[#141220] border-[#27213A] text-[#948F9E]'}`}>
             <div className="flex items-center gap-2">
-              <Database className={`w-3 h-3 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`} />
+              <Database className={`w-3 h-3 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`} />
               <span className="capitalize">{dbMode} DB</span>
             </div>
-            <span className={`w-2 h-2 rounded-full ${theme === 'light' ? 'bg-[#0284C7]' : 'bg-[#D4A24C]'}`} />
+            <span className={`w-2 h-2 rounded-full ${theme === 'light' ? 'bg-[#0284C7]' : 'bg-[#A855F7]'}`} />
           </div>
         </div>
       </aside>
@@ -471,7 +471,7 @@ export default function App() {
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* HEADER */}
-        <header className={`h-16 border-b px-6 flex items-center justify-between shrink-0 transition-colors ${theme === 'light' ? 'bg-[#FFFFFF]/90 backdrop-blur-md border-slate-200/80 shadow-sm' : 'bg-[#1C1B19] border-[#33302B]'}`}>
+        <header className={`h-16 border-b px-6 flex items-center justify-between shrink-0 transition-colors ${theme === 'light' ? 'bg-[#FFFFFF]/90 backdrop-blur-md border-slate-200/80 shadow-sm' : 'bg-[#0F0D18] border-[#27213A]'}`}>
           {/* MOBILE NAV TABS */}
           <div className="flex items-center gap-1 md:hidden">
             {[
@@ -487,7 +487,7 @@ export default function App() {
                 <button
                   key={item.id}
                   onClick={() => setActiveView(item.id)}
-                  className={`p-2 rounded-lg ${activeView === item.id ? (theme === 'light' ? 'bg-[#18181B] text-white shadow-sm' : 'bg-[#24221F] text-[#D4A24C]') : 'text-slate-400'}`}
+                  className={`p-2 rounded-lg ${activeView === item.id ? (theme === 'light' ? 'bg-[#18181B] text-white shadow-sm' : 'bg-[#F3E8FF] text-[#08070D] font-bold') : 'text-slate-400'}`}
                 >
                   <Icon className="w-4 h-4" />
                 </button>
@@ -499,29 +499,29 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => changeDate(-1)}
-              className={`p-1.5 rounded-xl transition-all border ${theme === 'light' ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-600 border-slate-200/70' : 'bg-[#24221F] hover:bg-[#292723] text-[#9E9A92] hover:text-[#E8E6E3] border-[#33302B]'}`}
+              className={`p-1.5 rounded-xl transition-all border ${theme === 'light' ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-600 border-slate-200/70' : 'bg-[#141220] hover:bg-[#1D192E] text-[#948F9E] hover:text-[#F5F3FF] border-[#27213A]'}`}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-semibold ${theme === 'light' ? 'bg-slate-50 border-slate-200/70 text-slate-800' : 'bg-[#24221F] border-[#33302B] text-[#E8E6E3]'}`}>
-              <CalendarIcon className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`} />
+            <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-semibold ${theme === 'light' ? 'bg-slate-50 border-slate-200/70 text-slate-800' : 'bg-[#141220] border-[#27213A] text-[#F5F3FF]'}`}>
+              <CalendarIcon className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`} />
               <span className="font-mono">{selectedDate}</span>
               {isTodaySelected && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${theme === 'light' ? 'bg-[#0284C7] text-white' : 'bg-[#D4A24C]/20 text-[#D4A24C]'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${theme === 'light' ? 'bg-[#0284C7] text-white' : 'bg-[#A855F7] text-white'}`}>
                   Today
                 </span>
               )}
             </div>
             <button
               onClick={() => changeDate(1)}
-              className={`p-1.5 rounded-xl transition-all border ${theme === 'light' ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-600 border-slate-200/70' : 'bg-[#24221F] hover:bg-[#292723] text-[#9E9A92] hover:text-[#E8E6E3] border-[#33302B]'}`}
+              className={`p-1.5 rounded-xl transition-all border ${theme === 'light' ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-600 border-slate-200/70' : 'bg-[#141220] hover:bg-[#1D192E] text-[#948F9E] hover:text-[#F5F3FF] border-[#27213A]'}`}
             >
               <ChevronRight className="w-4 h-4" />
             </button>
             {!isTodaySelected && (
               <button
                 onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-                className={`text-xs font-semibold hover:underline ml-2 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`}
+                className={`text-xs font-semibold hover:underline ml-2 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`}
               >
                 Go to Today
               </button>
@@ -533,11 +533,11 @@ export default function App() {
             {/* Quick Theme Switcher Button */}
             <button
               onClick={() => handleToggleTheme()}
-              title={theme === 'dark' ? 'Switch to Zentra Sky Light Theme' : 'Switch to Dark Journal Theme'}
+              title={theme === 'dark' ? 'Switch to Zentra Sky Light Theme' : 'Switch to Nixtio Midnight Dark Theme'}
               className={`p-2 rounded-xl border transition-all ${
                 theme === 'light'
                   ? 'bg-sky-50 border-sky-200/80 text-[#0284C7] shadow-sm'
-                  : 'bg-[#24221F] border-[#33302B] text-[#D4A24C]'
+                  : 'bg-[#141220] border-[#27213A] text-[#A855F7]'
               }`}
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -549,19 +549,19 @@ export default function App() {
               title={notificationsEnabled ? 'Desktop Notifications Active' : 'Click to Enable Desktop Notifications'}
               className={`p-2 rounded-xl border transition-all ${
                 notificationsEnabled
-                  ? theme === 'light' ? 'bg-sky-100 border-sky-200 text-[#0284C7]' : 'bg-[#D4A24C]/20 border-[#D4A24C]/40 text-[#D4A24C]'
-                  : theme === 'light' ? 'bg-slate-100 border-slate-200/70 text-slate-500' : 'bg-[#24221F] border-[#33302B] text-[#9E9A92]'
+                  ? theme === 'light' ? 'bg-sky-100 border-sky-200 text-[#0284C7]' : 'bg-[#A855F7]/20 border-[#A855F7]/40 text-[#A855F7]'
+                  : theme === 'light' ? 'bg-slate-100 border-slate-200/70 text-slate-500' : 'bg-[#141220] border-[#27213A] text-[#948F9E]'
               }`}
             >
               <Bell className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-2 text-xs text-[#9E9A92]">
-              <User className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`} />
-              <span className={`hidden sm:inline font-medium ${theme === 'light' ? 'text-slate-800' : 'text-[#E8E6E3]'}`}>{currentUser.email}</span>
+            <div className="flex items-center gap-2 text-xs text-[#948F9E]">
+              <User className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`} />
+              <span className={`hidden sm:inline font-medium ${theme === 'light' ? 'text-slate-800' : 'text-[#F5F3FF]'}`}>{currentUser.email}</span>
               <button
                 onClick={handleLogout}
-                className="text-xs text-[#9E9A92] hover:text-rose-500 font-medium ml-1"
+                className="text-xs text-[#948F9E] hover:text-rose-500 font-medium ml-1"
               >
                 Log Out
               </button>
@@ -569,7 +569,7 @@ export default function App() {
 
             {/* TOAST NOTIFICATION */}
             {toastMessage && (
-              <div className={`hidden sm:flex items-center gap-2 px-3.5 py-1.5 border text-xs rounded-xl animate-fadeIn ${theme === 'light' ? 'bg-white border-sky-300 text-[#0284C7] shadow-md' : 'bg-[#24221F] border-[#D4A24C]/40 text-[#D4A24C]'}`}>
+              <div className={`hidden sm:flex items-center gap-2 px-3.5 py-1.5 border text-xs rounded-xl animate-fadeIn ${theme === 'light' ? 'bg-white border-sky-300 text-[#0284C7] shadow-md' : 'bg-[#141220] border-[#A855F7]/40 text-[#A855F7]'}`}>
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>{toastMessage}</span>
               </div>
