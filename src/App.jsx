@@ -55,6 +55,7 @@ export default function App() {
   // Data states
   const [tasks, setTasks] = useState([]);
   const [backlogTasks, setBacklogTasks] = useState([]);
+  const [allUndoneTasks, setAllUndoneTasks] = useState([]);
   const [events, setEvents] = useState([]);
   const [dailyLog, setDailyLog] = useState(null);
   const [pattern, setPattern] = useState(null);
@@ -110,6 +111,7 @@ export default function App() {
     setAuthToken(null);
     setTasks([]);
     setBacklogTasks([]);
+    setAllUndoneTasks([]);
     setEvents([]);
     setDailyLog(null);
     setPattern(null);
@@ -146,6 +148,7 @@ export default function App() {
     if (authToken && currentUser) {
       fetchTodayData();
       fetchBacklogTasks();
+      fetchUndoneTasks();
       fetchPattern();
     }
     fetchHealth();
@@ -186,6 +189,15 @@ export default function App() {
     }
   };
 
+  const fetchUndoneTasks = async () => {
+    try {
+      const res = await authFetch('/api/tasks?undone=true');
+      if (res.ok) setAllUndoneTasks(await res.json());
+    } catch (err) {
+      console.error('Error fetching undone tasks:', err);
+    }
+  };
+
   const fetchPattern = async () => {
     try {
       const res = await authFetch('/api/patterns');
@@ -210,6 +222,7 @@ export default function App() {
         showToast('Task added');
         fetchTodayData();
         fetchBacklogTasks();
+        fetchUndoneTasks();
       }
     } catch (err) {
       console.error('Error adding task:', err);
@@ -246,6 +259,7 @@ export default function App() {
       if (res.ok) {
         fetchTodayData();
         fetchBacklogTasks();
+        fetchUndoneTasks();
         fetchPattern();
       }
     } catch (err) {
@@ -265,6 +279,7 @@ export default function App() {
         showToast('Task deleted');
         fetchTodayData();
         fetchBacklogTasks();
+        fetchUndoneTasks();
       }
     } catch (err) {
       console.error('Error deleting task:', err);
@@ -341,7 +356,9 @@ export default function App() {
   };
 
   // Calculate undone task count for navigation badge
-  const undoneCount = tasks.filter(t => t.status !== 'done').length + backlogTasks.filter(t => t.status !== 'done').length;
+  const undoneCount = allUndoneTasks.length > 0 
+    ? allUndoneTasks.filter(t => t.status !== 'done').length
+    : tasks.filter(t => t.status !== 'done').length + backlogTasks.filter(t => t.status !== 'done').length;
 
   // Date Navigation Helpers
   const changeDate = (days) => {
@@ -597,6 +614,7 @@ export default function App() {
             {activeView === 'undone' && (
               <UndoneTasksView
                 tasks={tasks}
+                allUndoneTasks={allUndoneTasks}
                 backlogTasks={backlogTasks}
                 onStatusChange={handleStatusChange}
                 onScheduleTask={handleScheduleTask}

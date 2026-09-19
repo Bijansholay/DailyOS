@@ -160,10 +160,12 @@ export const dbEngine = {
   },
 
   // TASKS
-  async getTasks({ userId = DEFAULT_USER_ID, date, isBacklog = false }) {
+  async getTasks({ userId = DEFAULT_USER_ID, date, isBacklog = false, isUndone = false }) {
     if (mode === 'supabase' && supabase) {
       let query = supabase.from('tasks').select('*').eq('user_id', userId);
-      if (isBacklog) {
+      if (isUndone) {
+        query = query.neq('status', 'done');
+      } else if (isBacklog) {
         query = query.is('scheduled_for', null);
       } else if (date) {
         query = query.eq('scheduled_for', date);
@@ -174,7 +176,9 @@ export const dbEngine = {
     } else {
       const db = loadJsonDb();
       let res = db.tasks.filter(t => t.user_id === userId);
-      if (isBacklog) {
+      if (isUndone) {
+        res = res.filter(t => t.status !== 'done');
+      } else if (isBacklog) {
         res = res.filter(t => !t.scheduled_for || t.scheduled_for === '');
       } else if (date) {
         res = res.filter(t => t.scheduled_for === date);

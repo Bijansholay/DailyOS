@@ -12,11 +12,12 @@ try {
 
   router.get('/', async (req, res) => {
     try {
-      const { date, backlog } = req.query;
+      const { date, backlog, undone } = req.query;
       const tasks = await dbEngine.getTasks({
         userId: req.userId,
         date,
-        isBacklog: backlog === 'true'
+        isBacklog: backlog === 'true',
+        isUndone: undone === 'true'
       });
       res.json(tasks);
     } catch (err) {
