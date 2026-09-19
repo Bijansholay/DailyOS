@@ -3,49 +3,54 @@
 @tailwind utilities;
 
 :root {
-  /* DARK THEME TOKENS (Nixtio Midnight Violet & Neon Purple Aesthetic) */
-  --bg-base: #08070D; /* Deep Pitch Midnight OLED Canvas */
-  --bg-card: #141220; /* Midnight Violet Slate floating cards */
-  --bg-card-hover: #1D192E;
-  --border-color: #27213A;
-  --border-subtle: #1F192E;
-  --text-main: #F5F3FF; /* Bright crisp lavender-white text */
-  --text-muted: #948F9E; /* Soft violet-slate text */
-  --text-subtle: #DDD6FE;
-  --accent-primary: #A855F7; /* Electric Neon Violet Accent */
-  --accent-primary-hover: #9333EA;
-  --accent-secondary: #FACC15; /* Ochre Gold / Yellow accent */
-  --accent-bg-subtle: rgba(168, 85, 247, 0.18);
-  --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(168, 85, 247, 0.08);
-  --header-bg: #0F0D18;
-  --sidebar-bg: #0F0D18;
-  --pill-active-bg: #F3E8FF; /* Stark white-lavender active pill with dark font */
-  --pill-active-text: #08070D;
-  --pill-active-border: #F3E8FF;
-  --btn-primary-bg: #A855F7;
+  /* DARK THEME TOKENS (Reference A — Nixtio-Style Dashboard Frame) */
+  --bg-frame: #F5F1E8; /* Soft warm cream outer canvas */
+  --bg-base: #121114; /* Near-black inner dashboard container */
+  --bg-card: #1C1924; /* Dark violet slate module card */
+  --bg-card-hover: #262232;
+  --border-color: #2D273C;
+  --border-subtle: #221D30;
+  --text-main: #FFFFFF; /* High contrast crisp white text */
+  --text-muted: #9C95A8; /* Muted purple slate text */
+  --text-subtle: #D8D2E6;
+  --accent-primary: #9333EA; /* Primary Purple accent */
+  --accent-primary-hover: #A855F7;
+  --accent-secondary: #FACC15; /* Yellow comparison accent */
+  --accent-danger: #EC4899; /* Pink overdue accent */
+  --accent-bg-subtle: rgba(147, 51, 234, 0.2);
+  --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+  --header-bg: #121114;
+  --sidebar-bg: #0C0B0E;
+  --pill-active-bg: #F5F1E8; /* Stark light pill for active selected states */
+  --pill-active-text: #121114;
+  --pill-active-border: #F5F1E8;
+  --btn-primary-bg: #9333EA;
   --btn-primary-text: #FFFFFF;
 }
 
 .light {
-  /* LIGHT THEME TOKENS (Zentra & Sky Blue Modern Floating Glass aesthetic) */
-  --bg-base: #EBF0F5; /* Soft silver-blue background canvas as in Zentra UI reference */
+  /* LIGHT THEME TOKENS (Reference B — Zentra & Mobile Task App) */
+  --bg-frame: #FAFAFA;
+  --bg-base: #FAFAFA; /* Full-bleed flat crisp light grey/white */
   --bg-card: #FFFFFF; /* Pure floating white cards */
-  --bg-card-hover: #F8FAFC;
-  --border-color: #E2E8F0;
-  --border-subtle: #F1F5F9;
-  --text-main: #0F172A; /* Deep dark slate font */
-  --text-muted: #64748B; /* Soft slate text */
-  --text-subtle: #334155;
-  --accent-primary: #0284C7; /* Vibrant Sky Blue accent */
-  --accent-primary-hover: #0369A1;
-  --accent-bg-subtle: rgba(2, 132, 199, 0.12);
-  --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-  --header-bg: rgba(255, 255, 255, 0.92);
+  --bg-card-hover: #F4F4F5;
+  --border-color: #E4E4E7;
+  --border-subtle: #F4F4F5;
+  --text-main: #09090B; /* Deep crisp black text */
+  --text-muted: #71717A; /* Muted zinc text */
+  --text-subtle: #3F3F46;
+  --accent-primary: #2563EB; /* Vibrant Blue accent */
+  --accent-primary-hover: #1D4ED8;
+  --accent-secondary: #0EA5E9; /* Sky blue accent */
+  --accent-danger: #EF4444;
+  --accent-bg-subtle: rgba(37, 99, 235, 0.1);
+  --card-shadow: 0 4px 16px -2px rgba(9, 9, 11, 0.04), 0 2px 6px -1px rgba(9, 9, 11, 0.02);
+  --header-bg: #FFFFFF;
   --sidebar-bg: #FFFFFF;
-  --pill-active-bg: #18181B; /* Sleek charcoal active pill button as in Zentra UI */
+  --pill-active-bg: #09090B; /* Solid black pill button as in Zentra UI */
   --pill-active-text: #FFFFFF;
-  --pill-active-border: #18181B;
-  --btn-primary-bg: #18181B;
+  --pill-active-border: #09090B;
+  --btn-primary-bg: #09090B;
   --btn-primary-text: #FFFFFF;
 }
 

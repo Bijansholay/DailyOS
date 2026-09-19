@@ -379,220 +379,220 @@ export default function App() {
   }
 
   return (
-    <div className={`flex h-screen overflow-hidden ${theme === 'light' ? 'bg-[#EBF0F5] text-slate-900' : 'bg-[#08070D] text-[#F5F3FF]'}`}>
-      {/* SIDEBAR */}
-      <aside className={`w-64 border-r flex flex-col justify-between p-6 shrink-0 hidden md:flex transition-colors ${theme === 'light' ? 'bg-[#FFFFFF] border-slate-200/80 shadow-sm' : 'bg-[#0F0D18] border-[#27213A]'}`}>
-        <div className="space-y-8">
-          {/* LOGO / JOURNAL TITLE */}
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all ${theme === 'light' ? 'bg-sky-50 border-sky-100 text-[#0284C7]' : 'bg-[#141220] border-[#27213A] text-[#A855F7] shadow-sm shadow-purple-900/30'}`}>
-              <BookOpen className="w-4 h-4" />
-            </div>
-            <div>
-              <h1 className={`font-journal text-xl font-normal tracking-tight ${theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#F5F3FF]'}`}>DailyOS</h1>
-              <p className={`text-[10px] uppercase tracking-wider font-semibold ${theme === 'light' ? 'text-slate-400' : 'text-[#948F9E]'}`}>Personal Journal</p>
-            </div>
-          </div>
-
-          {/* NAVIGATION LINKS */}
-          <nav className="space-y-1.5">
-            {[
-              { id: 'today', label: 'Day Planner', icon: LayoutDashboard, badge: tasks.length },
-              { id: 'undone', label: 'Undone Tasks', icon: ListTodo, badge: undoneCount },
-              { id: 'patterns', label: 'Analytics', icon: PieChart },
-              { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
-              { id: 'history', label: 'Log History', icon: History },
-              { id: 'settings', label: 'Settings', icon: Settings },
-            ].map((item) => {
-              const Icon = item.icon;
-              const isActive = activeView === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveView(item.id)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs transition-all ${
-                    isActive 
-                      ? theme === 'light'
-                        ? 'bg-[#18181B] text-white font-semibold shadow-md shadow-slate-900/10' 
-                        : 'bg-[#F3E8FF] text-[#08070D] font-bold shadow-lg shadow-purple-500/20' 
-                      : theme === 'light'
-                        ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
-                        : 'text-[#948F9E] hover:text-[#F5F3FF] hover:bg-[#1D192E]/60'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge !== undefined && item.badge > 0 && (
-                    <span className={`px-2 py-0.5 text-[10px] rounded-full font-mono ${
-                      isActive 
-                        ? theme === 'light' ? 'bg-white/20 text-white' : 'bg-[#9333EA] text-white' 
-                        : theme === 'light' ? 'bg-slate-100 text-slate-600 border border-slate-200/60' : 'bg-[#141220] text-[#A855F7] border border-[#27213A]'
-                    }`}>
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* ACCOUNT / SYSTEM STATUS BOX */}
-        <div className="space-y-3">
-          <div className={`p-3.5 rounded-xl border space-y-2 transition-colors ${theme === 'light' ? 'bg-slate-50 border-slate-200/70' : 'bg-[#141220] border-[#27213A]'}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 min-w-0">
-                <User className={`w-3.5 h-3.5 shrink-0 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`} />
-                <span className={`text-xs truncate ${theme === 'light' ? 'text-slate-800 font-medium' : 'text-[#F5F3FF]'}`}>{currentUser.email}</span>
+    <div className={`min-h-screen transition-colors ${
+      theme === 'light' 
+        ? 'bg-[#FAFAFA] text-[#09090B] flex flex-col overflow-x-hidden font-sans' 
+        : 'bg-[#F5F1E8] p-2 sm:p-4 md:p-6 lg:p-8 flex items-center justify-center font-sans'
+    }`}>
+      {/* APP CONTAINER FRAME */}
+      <div className={`w-full transition-all ${
+        theme === 'light'
+          ? 'flex flex-col min-h-screen'
+          : 'max-w-7xl bg-[#121114] text-white rounded-[28px] shadow-2xl border border-[#2D273C] overflow-hidden flex flex-col md:flex-row h-[92vh] max-h-[920px] relative'
+      }`}>
+        {/* SIDEBAR NAVIGATION */}
+        {theme === 'light' ? (
+          /* LIGHT MODE: Top Plain Wordmark & Text-Only Horizontal Nav Bar (Reference B) */
+          <header className="bg-white border-b border-[#E4E4E7] px-6 md:px-10 h-16 flex items-center justify-between shrink-0 sticky top-0 z-30">
+            <div className="flex items-center gap-10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
+                  D
+                </div>
+                <span className="font-bold text-lg tracking-tight text-[#09090B]">DailyOS</span>
               </div>
+
+              {/* Text-only nav tabs (Reference B) */}
+              <nav className="hidden md:flex items-center gap-6">
+                {[
+                  { id: 'today', label: 'Day Planner', badge: tasks.length },
+                  { id: 'undone', label: 'Undone Tasks', badge: undoneCount },
+                  { id: 'patterns', label: 'Analytics' },
+                  { id: 'backlog', label: 'Backlog', badge: backlogTasks.length },
+                  { id: 'history', label: 'Log History' },
+                  { id: 'settings', label: 'Settings' },
+                ].map((item) => {
+                  const isActive = activeView === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveView(item.id)}
+                      className={`py-5 text-sm transition-all relative flex items-center gap-1.5 ${
+                        isActive
+                          ? 'font-bold text-[#09090B] border-b-2 border-[#09090B]'
+                          : 'font-medium text-slate-500 hover:text-[#09090B]'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className={`px-1.5 py-0.2 text-[10px] rounded-full font-mono font-semibold ${
+                          isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Right Header Controls */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => handleToggleTheme('dark')}
+                title="Switch to Reference A Dark Mode"
+                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
+              >
+                <Moon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleEnableNotifications}
+                className={`p-2 rounded-full transition-all ${
+                  notificationsEnabled ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                <Bell className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                <span className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-800 text-xs">
+                  {currentUser.email ? currentUser.email.charAt(0).toUpperCase() : 'U'}
+                </span>
+                <button onClick={handleLogout} className="hover:text-rose-600 transition-colors">
+                  Logout
+                </button>
+              </div>
+            </div>
+          </header>
+        ) : (
+          /* DARK MODE: Compact Icon-Only Vertical Sidebar (Reference A) */
+          <aside className="w-20 bg-[#0C0B0E] border-r border-[#1F192E] flex flex-col items-center justify-between py-6 shrink-0 hidden md:flex">
+            <div className="flex flex-col items-center gap-8">
+              {/* Logo icon */}
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#7C3AED] to-[#A855F7] text-white flex items-center justify-center shadow-lg shadow-purple-900/40">
+                <BookOpen className="w-5 h-5" />
+              </div>
+
+              {/* Icon-Only Vertical Navigation Links */}
+              <nav className="flex flex-col items-center gap-4">
+                {[
+                  { id: 'today', label: 'Day Planner', icon: LayoutDashboard, badge: tasks.length },
+                  { id: 'undone', label: 'Undone Tasks', icon: ListTodo, badge: undoneCount },
+                  { id: 'patterns', label: 'Analytics', icon: PieChart },
+                  { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
+                  { id: 'history', label: 'Log History', icon: History },
+                  { id: 'settings', label: 'Settings', icon: Settings },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveView(item.id)}
+                      title={item.label}
+                      className={`relative p-3 rounded-2xl transition-all ${
+                        isActive
+                          ? 'bg-[#1C1924] text-[#A855F7] border border-[#2D273C] shadow-lg shadow-purple-950/40 scale-105'
+                          : 'text-slate-400 hover:text-white hover:bg-[#1C1924]/50'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[9px] font-bold bg-[#9333EA] text-white rounded-full border border-[#0C0B0E]">
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            <div className="flex flex-col items-center gap-3">
+              <button
+                onClick={() => handleToggleTheme('light')}
+                title="Switch to Reference B Light Mode"
+                className="p-2.5 rounded-xl bg-[#1C1924] text-[#FACC15] border border-[#2D273C] hover:scale-105 transition-all"
+              >
+                <Sun className="w-4 h-4" />
+              </button>
               <button
                 onClick={handleLogout}
                 title="Sign Out"
-                className="text-slate-400 hover:text-rose-500 transition-colors p-1"
+                className="p-2.5 rounded-xl text-slate-500 hover:text-rose-400 transition-colors"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-4 h-4" />
               </button>
             </div>
-          </div>
+          </aside>
+        )}
 
-          <div className={`p-2.5 rounded-xl border text-[11px] flex items-center justify-between transition-colors ${theme === 'light' ? 'bg-slate-50 border-slate-200/70 text-slate-500' : 'bg-[#141220] border-[#27213A] text-[#948F9E]'}`}>
-            <div className="flex items-center gap-2">
-              <Database className={`w-3 h-3 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`} />
-              <span className="capitalize">{dbMode} DB</span>
-            </div>
-            <span className={`w-2 h-2 rounded-full ${theme === 'light' ? 'bg-[#0284C7]' : 'bg-[#A855F7]'}`} />
-          </div>
-        </div>
-      </aside>
-
-      {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* HEADER */}
-        <header className={`h-16 border-b px-6 flex items-center justify-between shrink-0 transition-colors ${theme === 'light' ? 'bg-[#FFFFFF]/90 backdrop-blur-md border-slate-200/80 shadow-sm' : 'bg-[#0F0D18] border-[#27213A]'}`}>
-          {/* MOBILE NAV TABS */}
-          <div className="flex items-center gap-1 md:hidden">
-            {[
-              { id: 'today', icon: LayoutDashboard },
-              { id: 'undone', icon: ListTodo },
-              { id: 'patterns', icon: PieChart },
-              { id: 'backlog', icon: Inbox },
-              { id: 'history', icon: History },
-              { id: 'settings', icon: Settings },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveView(item.id)}
-                  className={`p-2 rounded-lg ${activeView === item.id ? (theme === 'light' ? 'bg-[#18181B] text-white shadow-sm' : 'bg-[#F3E8FF] text-[#08070D] font-bold') : 'text-slate-400'}`}
-                >
-                  <Icon className="w-4 h-4" />
-                </button>
-              );
-            })}
-          </div>
-
-          {/* DATE SWITCHER */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => changeDate(-1)}
-              className={`p-1.5 rounded-xl transition-all border ${theme === 'light' ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-600 border-slate-200/70' : 'bg-[#141220] hover:bg-[#1D192E] text-[#948F9E] hover:text-[#F5F3FF] border-[#27213A]'}`}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-semibold ${theme === 'light' ? 'bg-slate-50 border-slate-200/70 text-slate-800' : 'bg-[#141220] border-[#27213A] text-[#F5F3FF]'}`}>
-              <CalendarIcon className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`} />
-              <span className="font-mono">{selectedDate}</span>
-              {isTodaySelected && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${theme === 'light' ? 'bg-[#0284C7] text-white' : 'bg-[#A855F7] text-white'}`}>
-                  Today
-                </span>
-              )}
-            </div>
-            <button
-              onClick={() => changeDate(1)}
-              className={`p-1.5 rounded-xl transition-all border ${theme === 'light' ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-600 border-slate-200/70' : 'bg-[#141220] hover:bg-[#1D192E] text-[#948F9E] hover:text-[#F5F3FF] border-[#27213A]'}`}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            {!isTodaySelected && (
-              <button
-                onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-                className={`text-xs font-semibold hover:underline ml-2 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`}
-              >
-                Go to Today
-              </button>
-            )}
-          </div>
-
-          {/* USER ACCOUNT BADGE & THEME / NOTIFICATION CONTROLS */}
-          <div className="flex items-center gap-3">
-            {/* Quick Theme Switcher Button */}
-            <button
-              onClick={() => handleToggleTheme()}
-              title={theme === 'dark' ? 'Switch to Zentra Sky Light Theme' : 'Switch to Nixtio Midnight Dark Theme'}
-              className={`p-2 rounded-xl border transition-all ${
-                theme === 'light'
-                  ? 'bg-sky-50 border-sky-200/80 text-[#0284C7] shadow-sm'
-                  : 'bg-[#141220] border-[#27213A] text-[#A855F7]'
-              }`}
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-
-            {/* Desktop Notification Bell Button */}
-            <button
-              onClick={handleEnableNotifications}
-              title={notificationsEnabled ? 'Desktop Notifications Active' : 'Click to Enable Desktop Notifications'}
-              className={`p-2 rounded-xl border transition-all ${
-                notificationsEnabled
-                  ? theme === 'light' ? 'bg-sky-100 border-sky-200 text-[#0284C7]' : 'bg-[#A855F7]/20 border-[#A855F7]/40 text-[#A855F7]'
-                  : theme === 'light' ? 'bg-slate-100 border-slate-200/70 text-slate-500' : 'bg-[#141220] border-[#27213A] text-[#948F9E]'
-              }`}
-            >
-              <Bell className="w-4 h-4" />
-            </button>
-
-            <div className="flex items-center gap-2 text-xs text-[#948F9E]">
-              <User className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#A855F7]'}`} />
-              <span className={`hidden sm:inline font-medium ${theme === 'light' ? 'text-slate-800' : 'text-[#F5F3FF]'}`}>{currentUser.email}</span>
-              <button
-                onClick={handleLogout}
-                className="text-xs text-[#948F9E] hover:text-rose-500 font-medium ml-1"
-              >
-                Log Out
-              </button>
-            </div>
-
-            {/* TOAST NOTIFICATION */}
-            {toastMessage && (
-              <div className={`hidden sm:flex items-center gap-2 px-3.5 py-1.5 border text-xs rounded-xl animate-fadeIn ${theme === 'light' ? 'bg-white border-sky-300 text-[#0284C7] shadow-md' : 'bg-[#141220] border-[#A855F7]/40 text-[#A855F7]'}`}>
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>{toastMessage}</span>
+        {/* MAIN CONTENT AREA */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          {/* HEADER BAR FOR DARK MODE */}
+          {theme === 'dark' && (
+            <header className="h-16 border-b border-[#1F192E] px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#121114]">
+              {/* Search Pill (Reference A) */}
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1C1924] border border-[#2D273C] text-xs text-slate-300 w-52 sm:w-72">
+                <span className="text-slate-500">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search tasks or entries..."
+                  className="bg-transparent border-none outline-none text-xs text-white placeholder-slate-500 w-full"
+                />
               </div>
-            )}
-          </div>
-        </header>
 
-        {/* BODY VIEWS */}
-        <main className="flex-1 overflow-y-auto p-6 relative">
-          <div className="max-w-4xl mx-auto">
-            {activeView === 'today' && (
-              <TodayView
-                selectedDate={selectedDate}
-                tasks={tasks}
-                events={events}
-                dailyLog={dailyLog}
-                onStatusChange={handleStatusChange}
-                onAddTask={handleAddTask}
-                onAddEvent={handleAddEvent}
-                onGenerateAiBrief={handleGenerateAiBrief}
-                theme={theme}
-              />
-            )}
+              {/* Status Text & Avatar Cluster (Reference A) */}
+              <div className="flex items-center gap-4">
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#1C1924] border border-[#2D273C] text-xs">
+                  <div className="flex -space-x-1.5 overflow-hidden">
+                    <span className="inline-block h-5 w-5 rounded-full ring-2 ring-[#121114] bg-purple-500 text-[9px] font-bold text-white text-center leading-5">A</span>
+                    <span className="inline-block h-5 w-5 rounded-full ring-2 ring-[#121114] bg-indigo-500 text-[9px] font-bold text-white text-center leading-5">B</span>
+                  </div>
+                  <span className="font-semibold text-slate-200">
+                    {tasks.filter(t => t.status === 'done').length} of {tasks.length} tasks done
+                  </span>
+                  {undoneCount > 0 && (
+                    <span className="text-rose-400 font-bold ml-1">• {undoneCount} pending</span>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleEnableNotifications}
+                  className={`p-2 rounded-full border transition-all ${
+                    notificationsEnabled ? 'bg-purple-900/30 border-purple-500/40 text-purple-400' : 'bg-[#1C1924] border-[#2D273C] text-slate-400'
+                  }`}
+                >
+                  <Bell className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
+                  <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
+                    {currentUser.email ? currentUser.email.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                  <span className="hidden lg:inline">{currentUser.email}</span>
+                </div>
+              </div>
+            </header>
+          )}
+
+          {/* MAIN CONTAINER Scrollable */}
+          <main className="flex-1 overflow-y-auto p-4 md:p-8">
+            <div className={theme === 'light' ? 'max-w-6xl mx-auto' : 'max-w-6xl mx-auto'}>
+              {activeView === 'today' && (
+                <TodayView
+                  selectedDate={selectedDate}
+                  tasks={tasks}
+                  events={events}
+                  dailyLog={dailyLog}
+                  onStatusChange={handleStatusChange}
+                  onAddTask={handleAddTask}
+                  onAddEvent={handleAddEvent}
+                  onGenerateAiBrief={handleGenerateAiBrief}
+                  theme={theme}
+                  onSelectDate={setSelectedDate}
+                />
+              )}
 
             {activeView === 'undone' && (
               <UndoneTasksView
