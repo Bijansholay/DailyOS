@@ -3,26 +3,27 @@
 @tailwind utilities;
 
 :root {
-  /* DARK THEME TOKENS (Warm Journal Default) */
-  --bg-base: #1C1B19;
-  --bg-card: #24221F;
-  --bg-card-hover: #292723;
-  --border-color: #33302B;
-  --border-subtle: #2A2723;
-  --text-main: #E8E6E3;
-  --text-muted: #9E9A92;
-  --text-subtle: #D1CECB;
-  --accent-primary: #D4A24C;
-  --accent-primary-hover: #C3913B;
-  --accent-bg-subtle: rgba(212, 162, 76, 0.15);
-  --card-shadow: none;
-  --header-bg: #1C1B19;
-  --sidebar-bg: #1C1B19;
-  --pill-active-bg: #24221F;
-  --pill-active-text: #D4A24C;
-  --pill-active-border: #33302B;
-  --btn-primary-bg: #D4A24C;
-  --btn-primary-text: #1C1B19;
+  /* DARK THEME TOKENS (Nixtio Midnight Violet & Neon Purple Aesthetic) */
+  --bg-base: #08070D; /* Deep Pitch Midnight OLED Canvas */
+  --bg-card: #141220; /* Midnight Violet Slate floating cards */
+  --bg-card-hover: #1D192E;
+  --border-color: #27213A;
+  --border-subtle: #1F192E;
+  --text-main: #F5F3FF; /* Bright crisp lavender-white text */
+  --text-muted: #948F9E; /* Soft violet-slate text */
+  --text-subtle: #DDD6FE;
+  --accent-primary: #A855F7; /* Electric Neon Violet Accent */
+  --accent-primary-hover: #9333EA;
+  --accent-secondary: #FACC15; /* Ochre Gold / Yellow accent */
+  --accent-bg-subtle: rgba(168, 85, 247, 0.18);
+  --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(168, 85, 247, 0.08);
+  --header-bg: #0F0D18;
+  --sidebar-bg: #0F0D18;
+  --pill-active-bg: #F3E8FF; /* Stark white-lavender active pill with dark font */
+  --pill-active-text: #08070D;
+  --pill-active-border: #F3E8FF;
+  --btn-primary-bg: #A855F7;
+  --btn-primary-text: #FFFFFF;
 }
 
 .light {
