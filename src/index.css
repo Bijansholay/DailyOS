@@ -3,31 +3,49 @@
 @tailwind utilities;
 
 :root {
-  /* DARK THEME TOKENS (Default) */
+  /* DARK THEME TOKENS (Warm Journal Default) */
   --bg-base: #1C1B19;
   --bg-card: #24221F;
   --bg-card-hover: #292723;
   --border-color: #33302B;
+  --border-subtle: #2A2723;
   --text-main: #E8E6E3;
   --text-muted: #9E9A92;
-  --text-[#D1CECB]: #D1CECB;
+  --text-subtle: #D1CECB;
   --accent-primary: #D4A24C;
   --accent-primary-hover: #C3913B;
   --accent-bg-subtle: rgba(212, 162, 76, 0.15);
+  --card-shadow: none;
+  --header-bg: #1C1B19;
+  --sidebar-bg: #1C1B19;
+  --pill-active-bg: #24221F;
+  --pill-active-text: #D4A24C;
+  --pill-active-border: #33302B;
+  --btn-primary-bg: #D4A24C;
+  --btn-primary-text: #1C1B19;
 }
 
 .light {
-  /* LIGHT THEME TOKENS (Sky Blue + White) */
-  --bg-base: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #F1F5F9;
+  /* LIGHT THEME TOKENS (Zentra & Sky Blue Modern Floating Glass aesthetic) */
+  --bg-base: #EBF0F5; /* Soft silver-blue background canvas as in Zentra UI reference */
+  --bg-card: #FFFFFF; /* Pure floating white cards */
+  --bg-card-hover: #F8FAFC;
   --border-color: #E2E8F0;
-  --text-main: #0F172A;
-  --text-muted: #64748B;
-  --text-[#D1CECB]: #334155;
-  --accent-primary: #0284C7;
+  --border-subtle: #F1F5F9;
+  --text-main: #0F172A; /* Deep dark slate font */
+  --text-muted: #64748B; /* Soft slate text */
+  --text-subtle: #334155;
+  --accent-primary: #0284C7; /* Vibrant Sky Blue accent */
   --accent-primary-hover: #0369A1;
-  --accent-bg-subtle: rgba(2, 132, 199, 0.15);
+  --accent-bg-subtle: rgba(2, 132, 199, 0.12);
+  --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --sidebar-bg: #FFFFFF;
+  --pill-active-bg: #18181B; /* Sleek charcoal active pill button as in Zentra UI */
+  --pill-active-text: #FFFFFF;
+  --pill-active-border: #18181B;
+  --btn-primary-bg: #18181B;
+  --btn-primary-text: #FFFFFF;
 }
 
 @layer base {
@@ -47,6 +65,7 @@
   .journal-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
   }
 
   .journal-card-hover {
@@ -89,3 +108,4 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-primary);
 }
+

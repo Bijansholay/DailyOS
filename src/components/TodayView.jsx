@@ -12,7 +12,8 @@ export default function TodayView({
   onStatusChange, 
   onAddTask, 
   onAddEvent,
-  onGenerateAiBrief 
+  onGenerateAiBrief,
+  theme 
 }) {
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
@@ -137,28 +138,42 @@ export default function TodayView({
 
   return (
     <div 
-      className="max-w-4xl mx-auto space-y-10 py-2"
+      className="max-w-4xl mx-auto space-y-8 py-2"
       title="Component: <TodayView /> — Chronological Day Planner & Timeline Engine (src/components/TodayView.jsx)"
     >
       {/* DAY JOURNAL HEADER */}
       <div 
-        className="border-b border-[#33302B] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4"
+        className={`border-b pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 transition-colors ${
+          theme === 'light' ? 'border-slate-200/80' : 'border-[#33302B]'
+        }`}
         title="Component: <JournalHeader /> — Renders date, completed task metrics, and entry triggers"
       >
         <div>
-          <span className="text-xs font-semibold tracking-widest text-[#D4A24C] uppercase">Day Planner</span>
-          <h1 className="font-journal text-3xl md:text-4xl text-[#E8E6E3] font-normal tracking-tight mt-1">
+          <span className={`text-xs font-semibold tracking-widest uppercase ${
+            theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'
+          }`}>
+            Day Planner
+          </span>
+          <h1 className={`font-journal text-3xl md:text-4xl font-normal tracking-tight mt-1 ${
+            theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#E8E6E3]'
+          }`}>
             {formattedJournalDate}
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-[#9E9A92] font-medium" title="Function: Completion Progress Metric">
+          <span className={`text-xs font-medium ${
+            theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'
+          }`} title="Function: Completion Progress Metric">
             {completedCount} of {tasks.length} tasks completed
           </span>
           <button
             onClick={() => setShowTaskForm(!showTaskForm)}
             title="Action: Opens inline task entry creation form"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] rounded-lg text-xs font-semibold transition-colors"
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold shadow-sm transition-all ${
+              theme === 'light'
+                ? 'bg-[#18181B] hover:bg-black text-white'
+                : 'bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19]'
+            }`}
           >
             <Plus className="w-4 h-4" />
             <span>Add Entry</span>
@@ -166,24 +181,33 @@ export default function TodayView({
         </div>
       </div>
 
-      {/* PLAIN-TEXT PLAN INSIGHT (NO AI BADGE OR CHIP) */}
+      {/* PLAIN-TEXT PLAN INSIGHT HEADER CARD */}
       <div 
-        className="journal-card rounded-xl p-5 border-l-4 border-l-[#D4A24C] relative group"
-        title="Component: <AIScheduleInsight /> — Generates plain-text energy-window analysis using Google Gemini 2.5 API"
+        className={`journal-card rounded-2xl p-6 relative group transition-all ${
+          theme === 'light'
+            ? 'border-l-4 border-l-[#0284C7] bg-gradient-to-r from-sky-50 to-white shadow-sm'
+            : 'border-l-4 border-l-[#D4A24C]'
+        }`}
+        title="Component: <AIScheduleInsight /> — Generates plain-text energy-window analysis using Google Gemini API"
       >
         <div className="flex items-start justify-between gap-4">
-          <p className="text-[#E8E6E3] text-sm md:text-base leading-relaxed font-serif italic">
+          <p className={`text-sm md:text-base leading-relaxed font-serif italic ${
+            theme === 'light' ? 'text-slate-800' : 'text-[#E8E6E3]'
+          }`}>
             "{aiSummary?.insight || "Your afternoon fits best for deep focus — you complete 80% of tasks planned in your peak window."}"
           </p>
           <button
             onClick={handleTriggerBrief}
             disabled={isGeneratingBrief}
             title="Action: Triggers Google Gemini schedule optimization briefing"
-            className="text-[#9E9A92] hover:text-[#D4A24C] transition-colors p-1 shrink-0"
+            className={`transition-colors p-1 shrink-0 ${
+              theme === 'light' ? 'text-slate-400 hover:text-[#0284C7]' : 'text-[#9E9A92] hover:text-[#D4A24C]'
+            }`}
           >
             <RefreshCw className={`w-4 h-4 ${isGeneratingBrief ? 'animate-spin' : ''}`} />
           </button>
         </div>
+      </div>
         <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-[#D4A24C] font-mono mt-2 block">
           💡 Component: &lt;AIScheduleInsight /&gt; — Gemini AI Telemetry Optimization
         </span>

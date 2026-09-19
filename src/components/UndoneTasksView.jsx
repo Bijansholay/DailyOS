@@ -9,7 +9,8 @@ export default function UndoneTasksView({
   backlogTasks, 
   onStatusChange, 
   onScheduleTask, 
-  onDeleteTask 
+  onDeleteTask,
+  theme
 }) {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
@@ -66,58 +67,70 @@ export default function UndoneTasksView({
       title="Component: <UndoneTasksView /> — Centralized Undone Tasks & Overdue Focus Dashboard (src/components/UndoneTasksView.jsx)"
     >
       {/* HEADER BAR */}
-      <div className="border-b border-[#33302B] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className={`border-b pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 transition-colors ${
+        theme === 'light' ? 'border-slate-200/80' : 'border-[#33302B]'
+      }`}>
         <div>
-          <span className="text-xs font-semibold tracking-widest text-[#D4A24C] uppercase">Executive Focus Queue</span>
-          <h1 className="font-journal text-3xl md:text-4xl text-[#E8E6E3] font-normal tracking-tight mt-1">
+          <span className={`text-xs font-semibold tracking-widest uppercase ${
+            theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'
+          }`}>
+            Executive Focus Queue
+          </span>
+          <h1 className={`font-journal text-3xl md:text-4xl font-normal tracking-tight mt-1 ${
+            theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#E8E6E3]'
+          }`}>
             Undone Tasks Dashboard
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <div className="bg-[#24221F] px-4 py-2 rounded-lg border border-[#33302B] text-xs font-medium text-[#E8E6E3]">
-            <span className="text-[#9E9A92]">Remaining Workload:</span>{' '}
-            <strong className="text-[#D4A24C] font-mono">{totalEstHours} hrs</strong> ({totalEstMinutes}m)
+          <div className={`px-4 py-2 rounded-full border text-xs font-medium shadow-sm transition-colors ${
+            theme === 'light' ? 'bg-white border-slate-200/80 text-slate-800' : 'bg-[#24221F] border-[#33302B] text-[#E8E6E3]'
+          }`}>
+            <span className={theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'}>Remaining Workload:</span>{' '}
+            <strong className={`font-mono ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`}>{totalEstHours} hrs</strong> ({totalEstMinutes}m)
           </div>
         </div>
       </div>
 
       {/* OVERVIEW STATS ROW */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="journal-card rounded-xl p-4 border-l-4 border-l-rose-500/80">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9E9A92]">Overdue Tasks</span>
+        <div className="journal-card rounded-2xl p-5 border-l-4 border-l-rose-500/80">
+          <span className={`text-[11px] font-semibold uppercase tracking-wider ${theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'}`}>Overdue Tasks</span>
           <div className="mt-1 flex items-baseline justify-between">
-            <span className="font-journal text-2xl text-[#E8E6E3]">{overdueCount}</span>
-            <span className="text-xs text-rose-400 font-medium">Needs Attention</span>
+            <span className={`font-journal text-2xl ${theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#E8E6E3]'}`}>{overdueCount}</span>
+            <span className="text-xs text-rose-500 font-semibold">Needs Attention</span>
           </div>
         </div>
 
-        <div className="journal-card rounded-xl p-4 border-l-4 border-l-[#D4A24C]">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9E9A92]">Scheduled Today</span>
+        <div className={`journal-card rounded-2xl p-5 border-l-4 ${theme === 'light' ? 'border-l-[#0284C7]' : 'border-l-[#D4A24C]'}`}>
+          <span className={`text-[11px] font-semibold uppercase tracking-wider ${theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'}`}>Scheduled Today</span>
           <div className="mt-1 flex items-baseline justify-between">
-            <span className="font-journal text-2xl text-[#E8E6E3]">{todayCount}</span>
-            <span className="text-xs text-[#D4A24C] font-medium">Active Focus</span>
+            <span className={`font-journal text-2xl ${theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#E8E6E3]'}`}>{todayCount}</span>
+            <span className={`text-xs font-semibold ${theme === 'light' ? 'text-[#0284C7]' : 'text-[#D4A24C]'}`}>Active Focus</span>
           </div>
         </div>
 
-        <div className="journal-card rounded-xl p-4 border-l-4 border-l-[#66625B]">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9E9A92]">Unscheduled Backlog</span>
+        <div className="journal-card rounded-2xl p-5 border-l-4 border-l-slate-400">
+          <span className={`text-[11px] font-semibold uppercase tracking-wider ${theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'}`}>Unscheduled Backlog</span>
           <div className="mt-1 flex items-baseline justify-between">
-            <span className="font-journal text-2xl text-[#E8E6E3]">{backlogCount}</span>
-            <span className="text-xs text-[#9E9A92] font-medium">In Queue</span>
+            <span className={`font-journal text-2xl ${theme === 'light' ? 'text-slate-900 font-semibold' : 'text-[#E8E6E3]'}`}>{backlogCount}</span>
+            <span className={`text-xs font-semibold ${theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'}`}>In Queue</span>
           </div>
         </div>
       </div>
 
       {/* FILTERS BAR */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#24221F] p-3 rounded-lg border border-[#33302B]">
+      <div className={`flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl border transition-all ${
+        theme === 'light' ? 'bg-white border-slate-200/80 shadow-sm' : 'bg-[#24221F] border-[#33302B]'
+      }`}>
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-semibold text-[#9E9A92] uppercase tracking-wider">Filter:</span>
+          <span className={`text-xs font-semibold uppercase tracking-wider ${theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'}`}>Filter:</span>
           
           {/* Category Filter */}
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-3 py-1.5 journal-input rounded-md text-xs"
+            className="px-3.5 py-1.5 journal-input rounded-xl text-xs"
           >
             <option value="all">All Categories</option>
             <option value="work">Work</option>
@@ -130,7 +143,7 @@ export default function UndoneTasksView({
           <select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
-            className="px-3 py-1.5 journal-input rounded-md text-xs"
+            className="px-3.5 py-1.5 journal-input rounded-xl text-xs"
           >
             <option value="all">All Priorities</option>
             <option value="high">High Priority Only</option>
@@ -139,7 +152,7 @@ export default function UndoneTasksView({
           </select>
         </div>
 
-        <span className="text-xs text-[#9E9A92]">
+        <span className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-[#9E9A92]'}`}>
           Showing {filteredTasks.length} undone item{filteredTasks.length === 1 ? '' : 's'}
         </span>
       </div>

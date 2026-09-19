@@ -86,24 +86,25 @@ export default function SettingsView({
             onClick={() => onToggleTheme('light')}
             className={`p-4 rounded-xl text-left border transition-all flex flex-col justify-between space-y-3 ${
               theme === 'light'
-                ? 'bg-[#F8FAFC] text-slate-900 border-[#0284C7] shadow-lg shadow-[#0284C7]/10'
+                ? 'bg-[#FFFFFF] text-slate-900 border-[#0284C7] shadow-lg shadow-[#0284C7]/10 ring-2 ring-[#0284C7]/20'
                 : 'bg-[#1C1B19] border-[#33302B] hover:border-[#66625B]'
             }`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sun className="w-4 h-4 text-[#0284C7]" />
-                <span className={`font-semibold text-sm ${theme === 'light' ? 'text-slate-900' : 'text-[#E8E6E3]'}`}>Light Sky</span>
+                <span className={`font-semibold text-sm ${theme === 'light' ? 'text-slate-900' : 'text-[#E8E6E3]'}`}>Zentra Floating Glass</span>
               </div>
               {theme === 'light' && <Check className="w-4 h-4 text-[#0284C7]" />}
             </div>
             <p className={`text-xs ${theme === 'light' ? 'text-slate-600' : 'text-[#9E9A92]'}`}>
-              Crisp white base (<code className="text-[#0284C7]">#F8FAFC</code>) with vibrant Sky Blue accent.
+              Silver canvas (<code className="text-[#0284C7]">#EBF0F5</code>) with crisp floating white cards, charcoal pills (<code className="text-slate-900">#18181B</code>), & Sky Blue accents.
             </p>
             <div className="flex items-center gap-2 pt-1">
-              <span className="w-4 h-4 rounded-full bg-[#F8FAFC] border border-slate-300" />
-              <span className="w-4 h-4 rounded-full bg-[#FFFFFF] border border-slate-300" />
-              <span className="w-4 h-4 rounded-full bg-[#0284C7]" />
+              <span className="w-4 h-4 rounded-full bg-[#EBF0F5] border border-slate-300" title="Silver Canvas (#EBF0F5)" />
+              <span className="w-4 h-4 rounded-full bg-[#FFFFFF] border border-slate-300" title="Floating Card (#FFFFFF)" />
+              <span className="w-4 h-4 rounded-full bg-[#18181B]" title="Active Charcoal Pill (#18181B)" />
+              <span className="w-4 h-4 rounded-full bg-[#0284C7]" title="Sky Blue Accent (#0284C7)" />
             </div>
           </button>
         </div>
