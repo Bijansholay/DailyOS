@@ -207,8 +207,7 @@ export default function TodayView({
             <RefreshCw className={`w-4 h-4 ${isGeneratingBrief ? 'animate-spin' : ''}`} />
           </button>
         </div>
-      </div>
-        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-[#D4A24C] font-mono mt-2 block">
+        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-[#A855F7] font-mono mt-2 block">
           💡 Component: &lt;AIScheduleInsight /&gt; — Gemini AI Telemetry Optimization
         </span>
       </div>
