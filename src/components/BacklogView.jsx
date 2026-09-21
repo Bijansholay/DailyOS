@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Inbox, Plus, Calendar, Clock, Trash2 } from 'lucide-react';
+import { PrimaryButton, SecondaryButton, IconButton, ActionPillButton } from './Button';
 
 export default function BacklogView({ 
   backlogTasks, 
@@ -34,26 +35,25 @@ export default function BacklogView({
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 py-2">
-      <div className="border-b border-[#33302B] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="border-b border-[var(--border-color)] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <span className="text-xs font-semibold tracking-widest text-[#D4A24C] uppercase">Unscheduled Queue</span>
-          <h1 className="font-journal text-3xl md:text-4xl text-[#E8E6E3] font-normal tracking-tight mt-1">
+          <span className="text-xs font-semibold tracking-widest text-[var(--accent-primary)] uppercase">Unscheduled Queue</span>
+          <h1 className="font-journal text-3xl md:text-4xl text-[var(--text-main)] font-normal tracking-tight mt-1">
             Backlog
           </h1>
         </div>
-        <button
+        <PrimaryButton
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] rounded-lg text-xs font-semibold transition-colors shrink-0"
+          icon={Plus}
         >
-          <Plus className="w-4 h-4" />
-          <span>Add to Backlog</span>
-        </button>
+          Add Task
+        </PrimaryButton>
       </div>
 
       {/* ADD BACKLOG TASK FORM */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="journal-card rounded-xl p-5 space-y-4 border border-[#D4A24C]/40">
-          <h3 className="font-journal text-lg text-[#E8E6E3]">New Backlog Entry</h3>
+        <form onSubmit={handleSubmit} className="journal-card rounded-xl p-5 space-y-4 border border-[var(--border-color)]">
+          <h3 className="font-journal text-lg text-[var(--text-main)]">New Backlog Entry</h3>
           <input
             type="text"
             placeholder="Task Title..."
@@ -65,7 +65,7 @@ export default function BacklogView({
           />
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#9E9A92] mb-1">Category</label>
+              <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-1">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -78,7 +78,7 @@ export default function BacklogView({
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#9E9A92] mb-1">Estimated Min</label>
+              <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-1">Estimated Min</label>
               <select
                 value={estMinutes}
                 onChange={(e) => setEstMinutes(e.target.value)}
@@ -93,7 +93,7 @@ export default function BacklogView({
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#9E9A92] mb-1">Priority</label>
+              <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-1">Priority</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
@@ -106,39 +106,33 @@ export default function BacklogView({
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-xs text-[#9E9A92] hover:text-[#E8E6E3]"
-            >
+            <SecondaryButton onClick={() => setShowForm(false)}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] font-semibold rounded-lg text-xs"
-            >
+            </SecondaryButton>
+            <PrimaryButton type="submit">
               Create Task
-            </button>
+            </PrimaryButton>
           </div>
         </form>
       )}
 
       {/* TASKS LIST */}
       {backlogTasks.length === 0 ? (
-        <div className="journal-card rounded-xl p-12 text-center border border-[#33302B] space-y-3">
-          <div className="w-10 h-10 rounded-full bg-[#1C1B19] border border-[#33302B] flex items-center justify-center mx-auto text-[#9E9A92]">
+        <div className="journal-card rounded-xl p-12 text-center border border-[var(--border-color)] space-y-3">
+          <div className="w-10 h-10 rounded-full bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-center mx-auto text-[var(--text-muted)]">
             <Inbox className="w-5 h-5" />
           </div>
-          <p className="text-[#9E9A92] font-serif italic text-base">Your backlog is empty.</p>
-          <button
+          <p className="text-[var(--text-muted)] font-serif italic text-base">Your backlog is empty.</p>
+          <PrimaryButton
             onClick={() => setShowForm(true)}
-            className="text-xs text-[#D4A24C] font-semibold hover:underline"
+            icon={Plus}
+            className="mx-auto"
           >
-            + Add a task to your backlog
-          </button>
+            Add Task
+          </PrimaryButton>
         </div>
       ) : (
-        <div className="divide-y divide-[#33302B]">
+        <div className="divide-y divide-[var(--border-color)]">
           {backlogTasks.map((task) => {
             const isHighPriority = task.priority === 'high';
             const isLowPriority = task.priority === 'low';
@@ -146,49 +140,50 @@ export default function BacklogView({
             return (
               <div
                 key={task.id}
-                className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-[#24221F]/40 px-3 rounded-lg transition-colors"
+                className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-[var(--bg-card-hover)] px-3 rounded-lg transition-colors"
               >
                 <div className="space-y-1 min-w-0">
                   <h4 className={`leading-snug ${
                     isHighPriority 
-                      ? 'font-bold text-base md:text-lg text-[#E8E6E3]' 
+                      ? 'font-bold text-base md:text-lg text-[var(--text-main)]' 
                       : isLowPriority 
-                        ? 'font-normal text-xs text-[#9E9A92]' 
-                        : 'font-medium text-sm text-[#D1CECB]'
+                        ? 'font-normal text-xs text-[var(--text-muted)]' 
+                        : 'font-medium text-sm text-[var(--text-main)]'
                   }`}>
                     {task.title}
                   </h4>
-                  <div className="flex items-center gap-3 text-xs text-[#9E9A92]">
+                  <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
                     <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-[#66625B]" />
+                      <Clock className="w-3 h-3 text-[var(--text-muted)]" />
                       {task.estimated_minutes}m
                     </span>
-                    <span className="capitalize text-[#66625B]">{task.category}</span>
+                    <span className="capitalize text-[var(--text-muted)]">{task.category}</span>
                   </div>
                 </div>
 
                 {/* ACTION BUTTONS */}
                 <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0">
-                  <button
+                  <ActionPillButton
                     onClick={() => onScheduleTask(task.id, todayStr)}
-                    className="px-3 py-1.5 bg-[#D4A24C]/15 hover:bg-[#D4A24C]/25 text-[#D4A24C] text-xs font-semibold rounded-lg border border-[#D4A24C]/30 transition-all flex items-center gap-1"
+                    icon={Calendar}
+                    active
+                    title="Schedule for Today"
                   >
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Today</span>
-                  </button>
-                  <button
+                    Do Today
+                  </ActionPillButton>
+                  <ActionPillButton
                     onClick={() => onScheduleTask(task.id, tomorrowStr)}
-                    className="px-3 py-1.5 bg-[#24221F] hover:bg-[#292723] text-[#9E9A92] hover:text-[#E8E6E3] text-xs font-medium rounded-lg border border-[#33302B] transition-all"
+                    icon={Calendar}
+                    title="Schedule for Tomorrow"
                   >
-                    Tomorrow
-                  </button>
-                  <button
+                    Do Tomorrow
+                  </ActionPillButton>
+                  <IconButton
                     onClick={() => onDeleteTask(task.id)}
-                    className="p-1.5 text-[#66625B] hover:text-[#D4A24C] transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    icon={Trash2}
+                    danger
+                    title="Delete task"
+                  />
                 </div>
               </div>
             );

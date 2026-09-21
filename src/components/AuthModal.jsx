@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, LogIn, UserPlus, X, AlertCircle } from 'lucide-react';
+import { PrimaryButton, IconButton } from './Button';
 
 export default function AuthModal({ isOpen, initialRegister = false, onClose, onAuthSuccess }) {
   const [isRegister, setIsRegister] = useState(initialRegister);
@@ -49,24 +50,21 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-md journal-card rounded-xl p-6 border border-[#33302B] shadow-2xl">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-[#9E9A92] hover:text-[#E8E6E3] transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
+      <div className="relative w-full max-w-md journal-card rounded-xl p-6 border border-[var(--border-color)] shadow-2xl">
+        <div className="absolute top-4 right-4">
+          <IconButton onClick={onClose} icon={X} title="Close" />
+        </div>
 
         {/* LOGO / HEADER */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-9 h-9 rounded-lg bg-[#1C1B19] border border-[#33302B] flex items-center justify-center text-[#D4A24C]">
+          <div className="w-9 h-9 rounded-lg bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-center text-[var(--accent-primary)]">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="font-journal text-2xl text-[#E8E6E3]">
+            <h2 className="font-journal text-2xl text-[var(--text-main)]">
               {isRegister ? 'Create Journal Account' : 'Welcome Back'}
             </h2>
-            <p className="text-xs text-[#9E9A92]">
+            <p className="text-xs text-[var(--text-muted)]">
               {isRegister ? 'Sign up to isolate your tasks & analytics' : 'Sign in to access your daily schedule'}
             </p>
           </div>
@@ -81,7 +79,7 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#9E9A92] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
               Email Address
             </label>
             <input
@@ -96,7 +94,7 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#9E9A92] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
               Password
             </label>
             <input
@@ -109,17 +107,17 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
             />
           </div>
 
-          <button
+          <PrimaryButton
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] font-semibold text-sm rounded-lg transition-colors flex items-center justify-center gap-2 mt-2"
+            icon={isRegister ? UserPlus : LogIn}
+            className="w-full mt-2"
           >
-            {isRegister ? <UserPlus className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-            <span>{isSubmitting ? 'Processing...' : isRegister ? 'Create Account' : 'Sign In'}</span>
-          </button>
+            {isSubmitting ? 'Processing...' : isRegister ? 'Create Account' : 'Sign In'}
+          </PrimaryButton>
         </form>
 
-        <div className="mt-6 pt-4 border-t border-[#33302B] text-center text-xs text-[#9E9A92]">
+        <div className="mt-6 pt-4 border-t border-[var(--border-color)] text-center text-xs text-[var(--text-muted)]">
           {isRegister ? 'Already have an account?' : "Don't have an account yet?"}{' '}
           <button
             type="button"
@@ -127,7 +125,7 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
               setIsRegister(!isRegister);
               setErrorMsg(null);
             }}
-            className="text-[#D4A24C] font-semibold hover:underline ml-1"
+            className="text-[var(--accent-primary)] font-semibold hover:underline ml-1"
           >
             {isRegister ? 'Sign In' : 'Create Account'}
           </button>
@@ -136,3 +134,4 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
     </div>
   );
 }
+

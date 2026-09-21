@@ -5,6 +5,246 @@
       "email": "user@dailyos.local",
       "timezone": "UTC",
       "created_at": "2026-09-12T21:50:22.190Z"
+    },
+    {
+      "id": "615adfe1-54d7-4677-9437-c499761149ea",
+      "email": "testuser_1789997798191@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T13:36:38.191Z"
+    },
+    {
+      "id": "bd49e2d0-eab0-4133-a8b1-e6c9b2810bfe",
+      "email": "dupuser_1789997798200@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T13:36:38.200Z"
+    },
+    {
+      "id": "3e397b01-38c4-4795-bbb1-25117bfca12c",
+      "email": "cruduser_1789997798208@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T13:36:38.208Z"
+    },
+    {
+      "id": "680c9d00-d7ff-4767-9e80-6e15a3de3146",
+      "email": "usera_1789997798218@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T13:36:38.218Z"
+    },
+    {
+      "id": "dee4439f-1bc6-4d5f-bcce-8bb8e1fa1606",
+      "email": "userb_1789997798218@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T13:36:38.221Z"
+    },
+    {
+      "id": "10c6b80e-4e41-4d85-9d9c-75384d212fb0",
+      "email": "testuser_1789999158048@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T13:59:18.049Z"
+    },
+    {
+      "id": "a8014347-dd3a-4bf1-8124-b59d7f993db7",
+      "email": "dupuser_1789999158059@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T13:59:18.059Z"
+    },
+    {
+      "id": "88fb44a3-26ec-4c54-b53a-ccd52d08c65b",
+      "email": "cruduser_1789999158063@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T13:59:18.063Z"
+    },
+    {
+      "id": "3b504e48-8411-4f53-8551-f98bdac13bc1",
+      "email": "usera_1789999158071@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T13:59:18.071Z"
+    },
+    {
+      "id": "c44f776e-54c5-487a-9d4d-1f52fc56b00b",
+      "email": "userb_1789999158071@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T13:59:18.072Z"
+    },
+    {
+      "id": "68c5e9c7-1852-4eff-b83c-32d7adb73539",
+      "email": "testuser_1789999204551@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:00:04.551Z"
+    },
+    {
+      "id": "085bf1f4-9d4b-4279-965f-c3c03ef45543",
+      "email": "dupuser_1789999204559@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:00:04.559Z"
+    },
+    {
+      "id": "3e5310ec-67df-4f8d-ae18-321e5d2b98ec",
+      "email": "cruduser_1789999204564@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:00:04.564Z"
+    },
+    {
+      "id": "da5cea0f-a938-413d-be83-ae1d670bc87c",
+      "email": "usera_1789999204572@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:00:04.572Z"
+    },
+    {
+      "id": "ee80e131-e46c-45da-ae53-28fe27b7941f",
+      "email": "userb_1789999204572@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:00:04.574Z"
+    },
+    {
+      "id": "383817e0-9dbd-4eb0-938d-319bb4fa7095",
+      "email": "testuser_1790000188366@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:16:28.366Z"
+    },
+    {
+      "id": "76ae574c-3881-4cf8-819c-13c842913956",
+      "email": "dupuser_1790000188397@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:16:28.397Z"
+    },
+    {
+      "id": "0cdf618d-5cae-4fe8-a294-6707c6271f9b",
+      "email": "cruduser_1790000188408@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:16:28.408Z"
+    },
+    {
+      "id": "90c2fb30-cf4b-4523-9f36-7d5a8145de9d",
+      "email": "usera_1790000188415@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:16:28.415Z"
+    },
+    {
+      "id": "e2ffb30a-dc5e-4394-b96d-52f8357f26da",
+      "email": "userb_1790000188415@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:16:28.416Z"
+    },
+    {
+      "id": "861de655-1c04-4eca-b15b-6d7d5321679f",
+      "email": "testuser_1790000383327@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:19:43.327Z"
+    },
+    {
+      "id": "691fe0ee-07eb-43f3-87f7-f2dfc2415a0f",
+      "email": "dupuser_1790000383338@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:19:43.338Z"
+    },
+    {
+      "id": "614d8124-2870-4c86-9181-0a0d3eda0c29",
+      "email": "cruduser_1790000383342@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:19:43.342Z"
+    },
+    {
+      "id": "14789a84-bdef-42f5-a2c7-bde4bd0a76ad",
+      "email": "usera_1790000383356@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:19:43.356Z"
+    },
+    {
+      "id": "ebcc4f38-b039-45d9-a8cb-226ba37c272f",
+      "email": "userb_1790000383356@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:19:43.358Z"
+    },
+    {
+      "id": "a52e2de5-af3c-4af6-ab41-e371fe359540",
+      "email": "testuser_1790001484420@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:38:04.420Z"
+    },
+    {
+      "id": "e8a94e16-8d8e-47fc-b60a-69a768d83b7f",
+      "email": "dupuser_1790001484430@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:38:04.430Z"
+    },
+    {
+      "id": "0ac2ba6f-3c5e-4a84-890b-a9e7d5c72c8e",
+      "email": "cruduser_1790001484436@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:38:04.436Z"
+    },
+    {
+      "id": "e82fc951-e06e-4edc-abac-a8f43d6b96fd",
+      "email": "usera_1790001484450@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:38:04.450Z"
+    },
+    {
+      "id": "74b63ff4-b9f0-4cdb-b019-2c1933f184aa",
+      "email": "userb_1790001484450@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:38:04.451Z"
+    },
+    {
+      "id": "37830089-eb7b-4bd8-b705-f9b7ca1a44bf",
+      "email": "testuser_1790001652655@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:40:52.673Z"
+    },
+    {
+      "id": "4c8c76f8-8988-4c5c-8053-eb60388f63bd",
+      "email": "dupuser_1790001652697@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:40:52.697Z"
+    },
+    {
+      "id": "1558a5bd-e670-42bf-b057-d5f2abfe48f6",
+      "email": "cruduser_1790001652705@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:40:52.705Z"
+    },
+    {
+      "id": "f4a7bd5b-68ba-4ef2-af31-295c3917d72f",
+      "email": "usera_1790001652719@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:40:52.719Z"
+    },
+    {
+      "id": "b591bbb7-f947-4903-a156-62accd697212",
+      "email": "userb_1790001652719@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:40:52.722Z"
+    },
+    {
+      "id": "ee713cfa-8492-49a9-804c-833111186e3a",
+      "email": "testuser_1790002179685@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:49:39.685Z"
+    },
+    {
+      "id": "7d3e7125-d2d7-41a5-8256-0f9e1919e659",
+      "email": "dupuser_1790002179695@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-21T14:49:39.695Z"
+    },
+    {
+      "id": "ee5d3887-aa0a-4098-bd43-6379d1be3208",
+      "email": "cruduser_1790002179702@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:49:39.702Z"
+    },
+    {
+      "id": "fe6beb3b-b2fa-457d-bbd2-fc72c436f582",
+      "email": "usera_1790002179739@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:49:39.740Z"
+    },
+    {
+      "id": "a1e338ac-5780-4ad4-9163-e0781c489969",
+      "email": "userb_1790002179739@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-21T14:49:39.742Z"
     }
   ],
   "tasks": [

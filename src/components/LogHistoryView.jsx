@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, XSquare, AlertCircle, MessageSquare, Send } from 'lucide-react';
+import { PrimaryButton } from './Button';
 
 export default function LogHistoryView({ 
   selectedDate, 
@@ -47,10 +48,10 @@ export default function LogHistoryView({
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 py-2">
-      <div className="border-b border-[#33302B] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="border-b border-[var(--border-color)] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <span className="text-xs font-semibold tracking-widest text-[#D4A24C] uppercase">Journal Archives</span>
-          <h1 className="font-journal text-3xl md:text-4xl text-[#E8E6E3] font-normal tracking-tight mt-1">
+          <span className="text-xs font-semibold tracking-widest text-[var(--accent-primary)] uppercase">Journal Archives</span>
+          <h1 className="font-journal text-3xl md:text-4xl text-[var(--text-main)] font-normal tracking-tight mt-1">
             Log History & Reflections
           </h1>
         </div>
@@ -70,8 +71,8 @@ export default function LogHistoryView({
               onClick={() => onSelectDate(dateStr)}
               className={`flex-1 min-w-[56px] py-2.5 px-2 rounded-lg text-center transition-all border ${
                 isSelected
-                  ? 'bg-[#24221F] text-[#D4A24C] border-[#D4A24C] font-semibold'
-                  : 'bg-[#1C1B19] text-[#9E9A92] border-[#33302B] hover:bg-[#24221F] hover:text-[#E8E6E3]'
+                  ? 'bg-[var(--accent-bg-subtle)] text-[var(--accent-primary)] border-[var(--accent-primary)] font-semibold'
+                  : 'bg-[var(--bg-base)] text-[var(--text-muted)] border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-main)]'
               }`}
             >
               <span className="text-[10px] uppercase tracking-wider block font-mono">{dayName}</span>
@@ -88,26 +89,26 @@ export default function LogHistoryView({
           {/* DAILY COUNTS */}
           <div className="grid grid-cols-3 gap-3">
             <div className="journal-card rounded-xl p-4 text-center">
-              <CheckCircle2 className="w-4 h-4 text-[#D4A24C] mx-auto mb-1" />
-              <span className="font-journal text-2xl text-[#E8E6E3]">{dailyLog?.tasks_completed || 0}</span>
-              <p className="text-[11px] text-[#9E9A92] mt-0.5">Completed</p>
+              <CheckCircle2 className="w-4 h-4 text-[var(--accent-primary)] mx-auto mb-1" />
+              <span className="font-journal text-2xl text-[var(--text-main)]">{dailyLog?.tasks_completed || 0}</span>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Completed</p>
             </div>
             <div className="journal-card rounded-xl p-4 text-center">
-              <XSquare className="w-4 h-4 text-[#9E9A92] mx-auto mb-1" />
-              <span className="font-journal text-2xl text-[#E8E6E3]">{dailyLog?.tasks_skipped || 0}</span>
-              <p className="text-[11px] text-[#9E9A92] mt-0.5">Skipped</p>
+              <XSquare className="w-4 h-4 text-[var(--text-muted)] mx-auto mb-1" />
+              <span className="font-journal text-2xl text-[var(--text-main)]">{dailyLog?.tasks_skipped || 0}</span>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Skipped</p>
             </div>
             <div className="journal-card rounded-xl p-4 text-center">
-              <AlertCircle className="w-4 h-4 text-[#66625B] mx-auto mb-1" />
-              <span className="font-journal text-2xl text-[#E8E6E3]">{dailyLog?.tasks_late || 0}</span>
-              <p className="text-[11px] text-[#9E9A92] mt-0.5">Late</p>
+              <AlertCircle className="w-4 h-4 text-[var(--text-muted)] mx-auto mb-1" />
+              <span className="font-journal text-2xl text-[var(--text-main)]">{dailyLog?.tasks_late || 0}</span>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Late</p>
             </div>
           </div>
 
           {/* MOOD REFLECTION FORM */}
           <div className="journal-card rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 text-[#E8E6E3]">
-              <MessageSquare className="w-4 h-4 text-[#D4A24C]" />
+            <div className="flex items-center gap-2 text-[var(--text-main)]">
+              <MessageSquare className="w-4 h-4 text-[var(--accent-primary)]" />
               <h3 className="font-journal text-lg">Daily Reflection</h3>
             </div>
             <form onSubmit={handleReflectionSubmit} className="space-y-3">
@@ -119,28 +120,27 @@ export default function LogHistoryView({
                 className="w-full px-3.5 py-2.5 journal-input rounded-lg text-sm"
               />
               <div className="flex justify-end">
-                <button
+                <PrimaryButton
                   type="submit"
                   disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#D4A24C] hover:bg-[#C3913B] text-[#1C1B19] font-semibold rounded-lg text-xs transition-colors"
+                  icon={Send}
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isSaving ? 'Saving...' : 'Save Reflection'}</span>
-                </button>
+                  {isSaving ? 'Saving...' : 'Save Reflection'}
+                </PrimaryButton>
               </div>
             </form>
           </div>
         </div>
 
         {/* HISTORICAL PLAN INSIGHT (1 COL - NO AI CHIPS) */}
-        <div className="journal-card rounded-xl p-5 space-y-3 border-l-4 border-l-[#D4A24C]">
-          <h3 className="font-journal text-lg text-[#E8E6E3]">Schedule Insight</h3>
+        <div className="journal-card rounded-xl p-5 space-y-3 border-l-4 border-l-[var(--accent-primary)]">
+          <h3 className="font-journal text-lg text-[var(--text-main)]">Schedule Insight</h3>
           {aiSummary ? (
-            <p className="text-sm text-[#E8E6E3] font-serif italic leading-relaxed">
+            <p className="text-sm text-[var(--text-main)] font-serif italic leading-relaxed">
               "{aiSummary.insight}"
             </p>
           ) : (
-            <p className="text-xs text-[#9E9A92] italic">
+            <p className="text-xs text-[var(--text-muted)] italic">
               No schedule insight recorded for this date.
             </p>
           )}
@@ -149,3 +149,4 @@ export default function LogHistoryView({
     </div>
   );
 }
+

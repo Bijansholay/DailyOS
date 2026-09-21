@@ -50,7 +50,10 @@ try {
   router.patch('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const updatedTask = await dbEngine.updateTask(id, req.body);
+      const updatedTask = await dbEngine.updateTask(id, req.body, req.userId);
+      if (!updatedTask) {
+        return res.status(404).json({ error: 'Task not found or unauthorized' });
+      }
       res.json(updatedTask);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -60,7 +63,10 @@ try {
   router.delete('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      await dbEngine.deleteTask(id);
+      const result = await dbEngine.deleteTask(id, req.userId);
+      if (!result) {
+        return res.status(404).json({ error: 'Task not found or unauthorized' });
+      }
       res.json({ success: true, id });
     } catch (err) {
       res.status(500).json({ error: err.message });

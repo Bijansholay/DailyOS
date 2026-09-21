@@ -216,19 +216,21 @@ export const dbEngine = {
     }
   },
 
-  async updateTask(id, updates) {
+  async updateTask(id, updates, userId) {
     const fieldsToUpdate = { ...updates };
     if (fieldsToUpdate.status === 'done' && !fieldsToUpdate.completed_at) {
       fieldsToUpdate.completed_at = new Date().toISOString();
     }
 
     if (mode === 'supabase' && supabase) {
-      const { data, error } = await supabase.from('tasks').update(fieldsToUpdate).eq('id', id).select().single();
+      let query = supabase.from('tasks').update(fieldsToUpdate).eq('id', id);
+      if (userId) query = query.eq('user_id', userId);
+      const { data, error } = await query.select().maybeSingle();
       if (error) throw error;
       return data;
     } else {
       const db = loadJsonDb();
-      const idx = db.tasks.findIndex(t => t.id === id);
+      const idx = db.tasks.findIndex(t => t.id === id && (!userId || t.user_id === userId));
       if (idx !== -1) {
         db.tasks[idx] = { ...db.tasks[idx], ...fieldsToUpdate };
         saveJsonDb(db);
@@ -238,16 +240,21 @@ export const dbEngine = {
     }
   },
 
-  async deleteTask(id) {
+  async deleteTask(id, userId) {
     if (mode === 'supabase' && supabase) {
-      const { error } = await supabase.from('tasks').delete().eq('id', id);
+      let query = supabase.from('tasks').delete().eq('id', id);
+      if (userId) query = query.eq('user_id', userId);
+      const { error } = await query;
       if (error) throw error;
+      return { success: true, id };
     } else {
       const db = loadJsonDb();
-      db.tasks = db.tasks.filter(t => t.id !== id);
+      const exists = db.tasks.some(t => t.id === id && (!userId || t.user_id === userId));
+      if (!exists) return null;
+      db.tasks = db.tasks.filter(t => !(t.id === id && (!userId || t.user_id === userId)));
       saveJsonDb(db);
+      return { success: true, id };
     }
-    return { success: true, id };
   },
 
   // EVENTS
@@ -293,16 +300,21 @@ export const dbEngine = {
     }
   },
 
-  async deleteEvent(id) {
+  async deleteEvent(id, userId) {
     if (mode === 'supabase' && supabase) {
-      const { error } = await supabase.from('events').delete().eq('id', id);
+      let query = supabase.from('events').delete().eq('id', id);
+      if (userId) query = query.eq('user_id', userId);
+      const { error } = await query;
       if (error) throw error;
+      return { success: true, id };
     } else {
       const db = loadJsonDb();
-      db.events = db.events.filter(e => e.id !== id);
+      const exists = db.events.some(e => e.id === id && (!userId || e.user_id === userId));
+      if (!exists) return null;
+      db.events = db.events.filter(e => !(e.id === id && (!userId || e.user_id === userId)));
       saveJsonDb(db);
+      return { success: true, id };
     }
-    return { success: true, id };
   },
 
   // DAILY LOGS

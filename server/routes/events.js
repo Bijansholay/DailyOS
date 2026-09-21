@@ -43,7 +43,10 @@ try {
   router.delete('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      await dbEngine.deleteEvent(id);
+      const result = await dbEngine.deleteEvent(id, req.userId);
+      if (!result) {
+        return res.status(404).json({ error: 'Event not found or unauthorized' });
+      }
       res.json({ success: true, id });
     } catch (err) {
       res.status(500).json({ error: err.message });

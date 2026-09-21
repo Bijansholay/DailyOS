@@ -378,11 +378,27 @@ export default function App() {
             setAuthModalRegister(isReg);
             setShowAuthModal(true);
           }}
-          onTryDemo={() => {
-            const demoUser = { id: 'demo-user-123', email: 'demo@dailyos.local' };
-            setCurrentUser(demoUser);
-            setAuthToken('demo-token-123');
-            showToast('Entered Interactive Demo Mode');
+          onTryDemo={async () => {
+            try {
+              const res = await fetch('/api/auth/demo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+              });
+              if (res.ok) {
+                const data = await res.json();
+                localStorage.setItem('dailyos_token', data.token);
+                localStorage.setItem('dailyos_user', JSON.stringify(data.user));
+                setCurrentUser(data.user);
+                setAuthToken(data.token);
+                showToast('Entered Interactive Demo Mode');
+              } else {
+                const errData = await res.json();
+                showToast(errData.error || 'Failed to enter demo mode');
+              }
+            } catch (err) {
+              console.error('Error entering demo mode:', err);
+              showToast('Error entering demo mode');
+            }
           }}
         />
         <AuthModal

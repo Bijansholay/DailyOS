@@ -4,6 +4,7 @@ import {
   Calendar, RefreshCw, XSquare, AlertCircle, Sparkles, Flame, Zap
 } from 'lucide-react';
 import { AreaChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { PrimaryButton, SecondaryButton } from './Button';
 
 export default function TodayView({ 
   selectedDate, 
@@ -107,13 +108,12 @@ export default function TodayView({
             <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Today</h1>
             <p className="text-xs text-[#9C95A8] mt-1">{formattedJournalDate} • {completedCount} of {tasks.length} tasks completed</p>
           </div>
-          <button
+          <PrimaryButton
             onClick={() => setShowTaskForm(!showTaskForm)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#9333EA] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white rounded-full text-xs font-semibold shadow-lg shadow-purple-950/40 shrink-0 self-start md:self-auto"
+            icon={Plus}
           >
-            <Plus className="w-4 h-4" />
-            <span>Add Entry</span>
-          </button>
+            Add Task
+          </PrimaryButton>
         </div>
 
         {/* HORIZONTAL DATE RIBBON (Reference A Style) */}
@@ -140,7 +140,7 @@ export default function TodayView({
         {/* TASK CREATION FORM */}
         {showTaskForm && (
           <form onSubmit={handleTaskSubmit} className="bg-[#1C1924] border border-[#9333EA]/40 rounded-2xl p-5 space-y-4 shadow-xl">
-            <h3 className="text-sm font-semibold text-white">Add Task Entry</h3>
+            <h3 className="text-sm font-semibold text-white">New Task</h3>
             <input
               type="text"
               placeholder="What do you plan to accomplish?"
@@ -171,8 +171,8 @@ export default function TodayView({
               <input type="time" value={taskTime} onChange={(e) => setTaskTime(e.target.value)} className="px-3 py-2 rounded-xl bg-[#121114] border border-[#2D273C] text-xs text-white" />
             </div>
             <div className="flex justify-end gap-2 pt-1">
-              <button type="button" onClick={() => setShowTaskForm(false)} className="px-4 py-2 text-xs text-slate-400 hover:text-white">Cancel</button>
-              <button type="submit" className="px-4 py-2 bg-[#9333EA] hover:bg-[#7C3AED] text-white rounded-xl text-xs font-semibold">Save Task</button>
+              <SecondaryButton onClick={() => setShowTaskForm(false)}>Cancel</SecondaryButton>
+              <PrimaryButton type="submit">Create Task</PrimaryButton>
             </div>
           </form>
         )}
@@ -238,7 +238,7 @@ export default function TodayView({
 
               {tasks.length === 0 ? (
                 <div className="py-8 text-center text-[#9C95A8] text-xs italic">
-                  No tasks scheduled. Click "+ Add Entry" to populate your planner.
+                  No tasks scheduled. Click "+ Add Task" to populate your planner.
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -274,7 +274,7 @@ export default function TodayView({
                             isDone ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40' : 'bg-[#9333EA] text-white hover:bg-[#7C3AED]'
                           }`}
                         >
-                          {isDone ? 'Done ✓' : 'Start'}
+                          {isDone ? 'Completed ✓' : 'Mark Done'}
                         </button>
                       </div>
                     );
@@ -353,16 +353,15 @@ export default function TodayView({
       {/* HEADLINE + SUBTITLE (Reference B Headline Style) */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E4E4E7] pb-6">
         <div>
-          <h1 className="text-4xl font-extrabold text-[#09090B] tracking-tight">Today</h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium">{formattedJournalDate} • {completedCount} of {tasks.length} tasks completed</p>
+          <h1 className="text-4xl font-extrabold text-[var(--text-main)] tracking-tight">Today</h1>
+          <p className="text-xs text-[var(--text-muted)] mt-1 font-medium">{formattedJournalDate} • {completedCount} of {tasks.length} tasks completed</p>
         </div>
-        <button
+        <PrimaryButton
           onClick={() => setShowTaskForm(!showTaskForm)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#09090B] hover:bg-black text-white rounded-full text-xs font-semibold shadow-sm shrink-0 self-start md:self-auto transition-all"
+          icon={Plus}
         >
-          <Plus className="w-4 h-4" />
-          <span>Add Task</span>
-        </button>
+          Add Task
+        </PrimaryButton>
       </div>
 
       {/* HORIZONTAL DAY-STRIP CALENDAR (Reference B Mobile Style) */}
@@ -375,8 +374,8 @@ export default function TodayView({
               onClick={() => onSelectDate && onSelectDate(d.dateStr)}
               className={`flex flex-col items-center justify-center min-w-[64px] px-3.5 py-2.5 rounded-2xl transition-all ${
                 isSelected
-                  ? 'bg-[#09090B] text-white font-bold shadow-md scale-105'
-                  : 'bg-white text-slate-600 border border-[#E4E4E7] hover:border-slate-400'
+                  ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold shadow-md scale-105'
+                  : 'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-color)] hover:border-[var(--text-muted)]'
               }`}
             >
               <span className="text-[10px] font-semibold uppercase">{d.dayNum}</span>
@@ -388,75 +387,75 @@ export default function TodayView({
 
       {/* TASK FORM */}
       {showTaskForm && (
-        <form onSubmit={handleTaskSubmit} className="bg-white border border-slate-300 rounded-2xl p-5 space-y-4 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-900">New Planner Task</h3>
+        <form onSubmit={handleTaskSubmit} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 space-y-4 shadow-sm">
+          <h3 className="text-sm font-semibold text-[var(--text-main)]">New Planner Task</h3>
           <input
             type="text"
             placeholder="What needs to be done?"
             value={taskTitle}
             onChange={(e) => setTaskTitle(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-slate-900"
+            className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-xs text-[var(--text-main)] outline-none focus:border-[var(--accent-primary)]"
             required
             autoFocus
           />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <select value={taskCategory} onChange={(e) => setTaskCategory(e.target.value)} className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800">
+            <select value={taskCategory} onChange={(e) => setTaskCategory(e.target.value)} className="px-3 py-2 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-xs text-[var(--text-main)]">
               <option value="work">Work</option>
               <option value="school">School</option>
               <option value="personal">Personal</option>
               <option value="health">Health</option>
             </select>
-            <select value={taskEst} onChange={(e) => setTaskEst(e.target.value)} className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800">
+            <select value={taskEst} onChange={(e) => setTaskEst(e.target.value)} className="px-3 py-2 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-xs text-[var(--text-main)]">
               <option value="15">15 min</option>
               <option value="30">30 min</option>
               <option value="45">45 min</option>
               <option value="60">60 min</option>
             </select>
-            <select value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)} className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800">
+            <select value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)} className="px-3 py-2 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-xs text-[var(--text-main)]">
               <option value="high">High Priority</option>
               <option value="medium">Medium Priority</option>
               <option value="low">Low Priority</option>
             </select>
-            <input type="time" value={taskTime} onChange={(e) => setTaskTime(e.target.value)} className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800" />
+            <input type="time" value={taskTime} onChange={(e) => setTaskTime(e.target.value)} className="px-3 py-2 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-xs text-[var(--text-main)]" />
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={() => setShowTaskForm(false)} className="px-4 py-2 text-xs text-slate-500 hover:text-slate-900">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-[#09090B] text-white rounded-xl text-xs font-semibold">Save Task</button>
+            <SecondaryButton onClick={() => setShowTaskForm(false)}>Cancel</SecondaryButton>
+            <PrimaryButton type="submit">Create Task</PrimaryButton>
           </div>
         </form>
       )}
 
       {/* KPI ROW (Reference B Gross Volume / Stat Cards Style with Sparklines) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-white border border-[#E4E4E7] rounded-2xl p-5 shadow-sm space-y-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Tasks Completed</span>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Tasks Completed</span>
           <div className="flex items-baseline justify-between">
-            <h2 className="text-3xl font-extrabold text-slate-900">{completedCount} <span className="text-sm font-normal text-slate-400">/ {tasks.length}</span></h2>
-            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
+            <h2 className="text-3xl font-extrabold text-[var(--text-main)]">{completedCount} <span className="text-sm font-normal text-[var(--text-muted)]">/ {tasks.length}</span></h2>
+            <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Active</span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-            <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completionRate}%` }} />
+          <div className="w-full bg-[var(--bg-base)] rounded-full h-1.5 mt-2 overflow-hidden border border-[var(--border-color)]">
+            <div className="bg-[var(--accent-primary)] h-1.5 rounded-full" style={{ width: `${completionRate}%` }} />
           </div>
         </div>
 
-        <div className="bg-white border border-[#E4E4E7] rounded-2xl p-5 shadow-sm space-y-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Completion Rate</span>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Completion Rate</span>
           <div className="flex items-baseline justify-between">
-            <h2 className="text-3xl font-extrabold text-slate-900">{completionRate}%</h2>
-            <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">+12% vs avg</span>
+            <h2 className="text-3xl font-extrabold text-[var(--text-main)]">{completionRate}%</h2>
+            <span className="text-xs font-semibold text-blue-600 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">+12% vs avg</span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-            <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: `${completionRate}%` }} />
+          <div className="w-full bg-[var(--bg-base)] rounded-full h-1.5 mt-2 overflow-hidden border border-[var(--border-color)]">
+            <div className="bg-[var(--accent-primary)] h-1.5 rounded-full" style={{ width: `${completionRate}%` }} />
           </div>
         </div>
 
-        <div className="bg-white border border-[#E4E4E7] rounded-2xl p-5 shadow-sm space-y-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Current Streak</span>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Current Streak</span>
           <div className="flex items-baseline justify-between">
-            <h2 className="text-3xl font-extrabold text-slate-900">12 <span className="text-sm font-normal text-slate-400">days</span></h2>
-            <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">On Fire 🔥</span>
+            <h2 className="text-3xl font-extrabold text-[var(--text-main)]">12 <span className="text-sm font-normal text-[var(--text-muted)]">days</span></h2>
+            <span className="text-xs font-semibold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">On Fire 🔥</span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+          <div className="w-full bg-[var(--bg-base)] rounded-full h-1.5 mt-2 overflow-hidden border border-[var(--border-color)]">
             <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '85%' }} />
           </div>
         </div>
@@ -464,9 +463,9 @@ export default function TodayView({
 
       {/* TASK LIST (Reference B Mobile Screen Card Style) */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Today's Action Items</h3>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">Today's Action Items</h3>
         {tasks.length === 0 ? (
-          <div className="bg-white border border-[#E4E4E7] rounded-2xl p-8 text-center text-slate-400 text-xs italic shadow-sm">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-8 text-center text-[var(--text-muted)] text-xs italic shadow-sm">
             No active tasks scheduled for today.
           </div>
         ) : (
@@ -476,19 +475,19 @@ export default function TodayView({
               return (
                 <div
                   key={t.id}
-                  className={`bg-white border border-[#E4E4E7] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 ${
-                    isDone ? 'opacity-60 bg-slate-50' : ''
+                  className={`bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 ${
+                    isDone ? 'opacity-60 bg-[var(--bg-base)]' : ''
                   }`}
                 >
                   <div className="flex items-center gap-4 min-w-0">
                     {/* Category dot */}
-                    <span className="w-3 h-3 rounded-full bg-blue-600 shrink-0" />
+                    <span className="w-3 h-3 rounded-full bg-[var(--accent-primary)] shrink-0" />
 
                     <div className="min-w-0">
-                      <h4 className={`text-base font-bold tracking-tight text-slate-900 truncate ${isDone ? 'line-through text-slate-400' : ''}`}>
+                      <h4 className={`text-base font-bold tracking-tight text-[var(--text-main)] truncate ${isDone ? 'line-through text-[var(--text-muted)]' : ''}`}>
                         {t.title}
                       </h4>
-                      <p className="text-xs text-slate-500 mt-0.5 font-medium capitalize">
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5 font-medium capitalize">
                         {t.category} • {t.estimated_minutes} min estimated
                       </p>
                     </div>
@@ -499,11 +498,11 @@ export default function TodayView({
                     onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
                     className={`px-5 py-2 rounded-full text-xs font-semibold shrink-0 transition-all ${
                       isDone 
-                        ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' 
-                        : 'bg-[#09090B] hover:bg-black text-white shadow-sm'
+                        ? 'bg-[var(--bg-base)] text-[var(--text-muted)] border border-[var(--border-color)] hover:text-[var(--text-main)]' 
+                        : 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm hover:opacity-90'
                     }`}
                   >
-                    {isDone ? 'Completed ✓' : 'Start Task'}
+                    {isDone ? 'Completed ✓' : 'Mark Done'}
                   </button>
                 </div>
               );

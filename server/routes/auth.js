@@ -80,6 +80,60 @@ try {
     }
   });
 
+  // POST /api/auth/demo
+  router.post('/demo', async (req, res) => {
+    try {
+      const email = 'demo@dailyos.local';
+      let demoUser = await dbEngine.findUserByEmail(email);
+
+      if (!demoUser) {
+        demoUser = await dbEngine.createUser({
+          email,
+          password_hash: hashPassword('demo-password-123')
+        });
+      }
+
+      // Seed sample tasks if demo account has no tasks
+      const existingTasks = await dbEngine.getTasks({ userId: demoUser.id });
+      if (!existingTasks || existingTasks.length === 0) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const sampleTasks = [
+          { title: 'Design system review & component restyle', category: 'work', estimated_minutes: 45, scheduled_for: todayStr, priority: 'high' },
+          { title: 'Review customer feedback & telemetry logs', category: 'work', estimated_minutes: 30, scheduled_for: todayStr, priority: 'medium' },
+          { title: 'Database query optimization & indexing', category: 'work', estimated_minutes: 60, scheduled_for: todayStr, priority: 'high' },
+          { title: 'Daily health & workout session', category: 'health', estimated_minutes: 45, scheduled_for: todayStr, priority: 'medium' },
+          { title: 'Read 2 chapters of Executive Function Guide', category: 'school', estimated_minutes: 30, scheduled_for: null, priority: 'medium' }
+        ];
+
+        for (const t of sampleTasks) {
+          await dbEngine.createTask({
+            user_id: demoUser.id,
+            title: t.title,
+            category: t.category,
+            estimated_minutes: t.estimated_minutes,
+            scheduled_for: t.scheduled_for,
+            priority: t.priority,
+            status: 'pending'
+          });
+        }
+      }
+
+      const token = createToken({ userId: demoUser.id, email: demoUser.email });
+
+      res.json({
+        token,
+        user: {
+          id: demoUser.id,
+          email: demoUser.email,
+          created_at: demoUser.created_at
+        }
+      });
+    } catch (err) {
+      console.error('Error during demo auth:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // GET /api/auth/me
   router.get('/me', authMiddleware, async (req, res) => {
     try {

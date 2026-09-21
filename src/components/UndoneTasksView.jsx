@@ -4,6 +4,7 @@ import {
   Trash2, XSquare, AlertCircle, ArrowUpRight, Check,
   Inbox, Layers, AlertTriangle, Filter, CalendarDays
 } from 'lucide-react';
+import { PrimaryButton, SecondaryButton, IconButton, ActionPillButton } from './Button';
 
 function getTaskDateMeta(scheduledFor) {
   const todayStr = new Date().toISOString().split('T')[0];
@@ -434,45 +435,30 @@ export default function UndoneTasksView({
                 </div>
 
                 {/* QUICK ACTION CONTROLS */}
-                <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 border-slate-800">
+                <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[var(--border-color)]">
                   {meta.type !== 'today' && (
-                    <button
+                    <ActionPillButton
                       onClick={() => onScheduleTask(task.id, todayStr)}
-                      title="Action: Reschedule task to Today"
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 ${
-                        theme === 'light'
-                          ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-sm'
-                          : 'bg-purple-600 text-white hover:bg-purple-500 shadow-md shadow-purple-900/30'
-                      }`}
+                      icon={Calendar}
+                      active
+                      title="Schedule for Today"
                     >
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>Do Today</span>
-                    </button>
+                      Do Today
+                    </ActionPillButton>
                   )}
 
-                  <button
+                  <IconButton
                     onClick={() => onStatusChange(task, 'skipped')}
-                    title="Action: Mark task as skipped"
-                    className={`p-2 rounded-xl transition-colors ${
-                      theme === 'light'
-                        ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-                        : 'text-slate-500 hover:text-slate-300 hover:bg-[#121114]'
-                    }`}
-                  >
-                    <XSquare className="w-4 h-4" />
-                  </button>
+                    icon={XSquare}
+                    title="Skip task"
+                  />
 
-                  <button
+                  <IconButton
                     onClick={() => onDeleteTask(task.id)}
-                    title="Action: Delete task"
-                    className={`p-2 rounded-xl transition-colors ${
-                      theme === 'light'
-                        ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
-                        : 'text-slate-500 hover:text-rose-400 hover:bg-[#121114]'
-                    }`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    icon={Trash2}
+                    danger
+                    title="Delete task"
+                  />
                 </div>
               </div>
             );
