@@ -86,17 +86,39 @@ export default function TodayView({
   const upcomingTasks = tasks.filter(t => t.status !== 'done');
   const completionRate = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
 
-  // Chart pace data (today's pace vs average pace)
-  const chartData = [
-    { time: '7am', today: 1, average: 1.2 },
-    { time: '9am', today: 2, average: 2.1 },
-    { time: '11am', today: 2.5, average: 2.8 },
-    { time: '1pm', today: 1.8, average: 2.4 },
-    { time: '3pm', today: 4.2, average: 3.1 },
-    { time: '5pm', today: 3.5, average: 3.8 },
-    { time: '7pm', today: 2.8, average: 2.5 },
-    { time: '9pm', today: 1.5, average: 1.8 },
+  // Dynamic hourly completion pace calculated from real task records
+  const timeSlots = [
+    { label: '7am', hour: 7, avg: 1.2 },
+    { label: '9am', hour: 9, avg: 2.1 },
+    { label: '11am', hour: 11, avg: 2.8 },
+    { label: '1pm', hour: 13, avg: 2.4 },
+    { label: '3pm', hour: 15, avg: 3.1 },
+    { label: '5pm', hour: 17, avg: 3.8 },
+    { label: '7pm', hour: 19, avg: 2.5 },
+    { label: '9pm', hour: 21, avg: 1.8 }
   ];
+
+  const chartData = timeSlots.map(slot => {
+    const todayCountForSlot = tasks.filter(t => {
+      if (t.status === 'done' && t.completed_at) {
+        const completedHour = new Date(t.completed_at).getHours();
+        return Math.abs(completedHour - slot.hour) <= 1;
+      }
+      if (t.scheduled_time) {
+        const scheduledHour = parseInt(t.scheduled_time.split(':')[0], 10);
+        return Math.abs(scheduledHour - slot.hour) <= 1;
+      }
+      return false;
+    }).length;
+
+    return {
+      time: slot.label,
+      today: todayCountForSlot,
+      average: slot.avg
+    };
+  });
+
+  const streakCount = (dailyLog?.tasks_completed !== undefined) ? dailyLog.tasks_completed : completedCount;
 
   // DARK MODE LAYOUT (Reference A — Nixtio Style)
   if (theme === 'dark') {
@@ -337,7 +359,7 @@ export default function TodayView({
                 <span className="text-xs font-bold uppercase tracking-wider">Consistency Record</span>
               </div>
               <div className="pt-2">
-                <h2 className="text-5xl font-extrabold tracking-tight">12</h2>
+                <h2 className="text-5xl font-extrabold tracking-tight">{streakCount}</h2>
                 <p className="text-xs font-semibold text-purple-100 mt-1">day streak achieved</p>
               </div>
             </div>
@@ -452,11 +474,11 @@ export default function TodayView({
         <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-2">
           <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Current Streak</span>
           <div className="flex items-baseline justify-between">
-            <h2 className="text-3xl font-extrabold text-[var(--text-main)]">12 <span className="text-sm font-normal text-[var(--text-muted)]">days</span></h2>
+            <h2 className="text-3xl font-extrabold text-[var(--text-main)]">{streakCount} <span className="text-sm font-normal text-[var(--text-muted)]">days</span></h2>
             <span className="text-xs font-semibold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">On Fire 🔥</span>
           </div>
           <div className="w-full bg-[var(--bg-base)] rounded-full h-1.5 mt-2 overflow-hidden border border-[var(--border-color)]">
-            <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '85%' }} />
+            <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${Math.min(streakCount * 10, 100)}%` }} />
           </div>
         </div>
       </div>
