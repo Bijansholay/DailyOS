@@ -245,6 +245,36 @@
       "email": "userb_1790002179739@example.com",
       "password_hash": "pass",
       "created_at": "2026-09-21T14:49:39.742Z"
+    },
+    {
+      "id": "cabfcd9b-eaae-431f-b982-4bc43baae101",
+      "email": "testuser_1790068609975@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-22T09:16:49.975Z"
+    },
+    {
+      "id": "7ad09e58-3efe-427c-86cc-f4fd4d97ed26",
+      "email": "dupuser_1790068609993@example.com",
+      "password_hash": "hashedPassword123",
+      "created_at": "2026-09-22T09:16:49.993Z"
+    },
+    {
+      "id": "3690ec5e-9971-48bc-a524-7f09bdfc1d80",
+      "email": "cruduser_1790068609998@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-22T09:16:49.998Z"
+    },
+    {
+      "id": "c32b476e-16a0-4263-bfa3-3aa6f5b85bfa",
+      "email": "usera_1790068610007@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-22T09:16:50.007Z"
+    },
+    {
+      "id": "f7d52290-4fbc-49f8-aaa7-586904511674",
+      "email": "userb_1790068610007@example.com",
+      "password_hash": "pass",
+      "created_at": "2026-09-22T09:16:50.008Z"
     }
   ],
   "tasks": [
