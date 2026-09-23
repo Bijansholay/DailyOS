@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { 
   LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
   ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock, Bell, ListTodo, Settings, Sun, Moon, Target
@@ -15,6 +16,16 @@ import GoalsView from './components/GoalsView';
 import LandingPage from './components/LandingPage';
 import CompletionModal from './components/CompletionModal';
 import AuthModal from './components/AuthModal';
+
+const NAV_CONFIG = [
+  { id: 'today', label: 'Day Planner', icon: LayoutDashboard },
+  { id: 'undone', label: 'Undone Tasks', icon: ListTodo },
+  { id: 'goals', label: 'Goals & Review', icon: Target },
+  { id: 'patterns', label: 'Analytics', icon: PieChart },
+  { id: 'backlog', label: 'Backlog', icon: Inbox },
+  { id: 'history', label: 'Log History', icon: History },
+  { id: 'settings', label: 'Settings', icon: Settings },
+];
 
 export default function App() {
   const [activeView, setActiveView] = useState('today'); // today | undone | goals | patterns | backlog | history | settings
@@ -63,6 +74,10 @@ export default function App() {
     localStorage.setItem('dailyos_focus_target', targetVal);
   };
 
+  // Clerk Authentication Hooks
+  const { isLoaded: isClerkLoaded, userId: clerkUserId, getToken, signOut: clerkSignOut, isSignedIn: isClerkSignedIn } = useAuth();
+  const { user: clerkUser } = useUser();
+
   // Auth State
   const [currentUser, setCurrentUser] = useState(() => {
     try {
@@ -75,6 +90,36 @@ export default function App() {
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('dailyos_token'));
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalRegister, setAuthModalRegister] = useState(false);
+
+  // Sync Clerk User on sign in
+  useEffect(() => {
+    if (isClerkSignedIn && clerkUserId && clerkUser) {
+      const email = clerkUser.primaryEmailAddress?.emailAddress || clerkUser.emailAddresses?.[0]?.emailAddress || '';
+      const syncedUser = { id: clerkUserId, email };
+      setCurrentUser(syncedUser);
+      localStorage.setItem('dailyos_user', JSON.stringify(syncedUser));
+
+      (async () => {
+        try {
+          const token = await getToken();
+          if (token) {
+            localStorage.setItem('dailyos_token', token);
+            setAuthToken(token);
+          }
+          await fetch('/api/auth/sync', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token || clerkUserId}`
+            },
+            body: JSON.stringify({ email })
+          });
+        } catch (e) {
+          console.warn('Clerk user sync notice:', e);
+        }
+      })();
+    }
+  }, [isClerkSignedIn, clerkUserId, clerkUser]);
 
   // Data states
   const [tasks, setTasks] = useState([]);
@@ -98,7 +143,18 @@ export default function App() {
 
   // Helper fetch with Bearer token authentication header & 401 interceptor
   const authFetch = async (url, options = {}) => {
-    const token = authToken || localStorage.getItem('dailyos_token');
+    let token = null;
+    if (isClerkSignedIn && getToken) {
+      try {
+        token = await getToken();
+      } catch (e) {
+        token = clerkUserId;
+      }
+    }
+    if (!token) {
+      token = authToken || localStorage.getItem('dailyos_token') || (currentUser ? currentUser.id : null);
+    }
+
     const headers = {
       'Content-Type': 'application/json',
       ...options.headers
@@ -109,7 +165,7 @@ export default function App() {
     
     try {
       const res = await fetch(url, { ...options, headers });
-      if (res.status === 401) {
+      if (res.status === 401 && !isClerkSignedIn) {
         localStorage.removeItem('dailyos_token');
         localStorage.removeItem('dailyos_user');
         setCurrentUser(null);
@@ -128,7 +184,10 @@ export default function App() {
     showToast(`Signed in as ${user.email}`);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (isClerkSignedIn && clerkSignOut) {
+      await clerkSignOut();
+    }
     localStorage.removeItem('dailyos_token');
     localStorage.removeItem('dailyos_user');
     setCurrentUser(null);
@@ -139,7 +198,7 @@ export default function App() {
     setEvents([]);
     setDailyLog(null);
     setPattern(null);
-    showToast('Logged out');
+    showToast('Signed out successfully');
   };
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(
@@ -384,6 +443,11 @@ export default function App() {
     ? allUndoneTasks.filter(t => t.status !== 'done').length
     : tasks.filter(t => t.status !== 'done').length + backlogTasks.filter(t => t.status !== 'done').length;
 
+  const navItems = NAV_CONFIG.map((item) => ({
+    ...item,
+    badge: item.id === 'today' ? tasks.length : item.id === 'undone' ? undoneCount : item.id === 'backlog' ? backlogTasks.length : undefined
+  }));
+
   // Date Navigation Helpers
   const changeDate = (days) => {
     const d = new Date(selectedDate);
@@ -462,15 +526,7 @@ export default function App() {
 
                 {/* Text-only nav tabs for Desktop (Reference B) */}
                 <nav className="hidden md:flex items-center gap-6">
-                  {[
-                    { id: 'today', label: 'Day Planner', badge: tasks.length },
-                    { id: 'undone', label: 'Undone Tasks', badge: undoneCount },
-                    { id: 'goals', label: 'Goals & Review' },
-                    { id: 'patterns', label: 'Analytics' },
-                    { id: 'backlog', label: 'Backlog', badge: backlogTasks.length },
-                    { id: 'history', label: 'Log History' },
-                    { id: 'settings', label: 'Settings' },
-                  ].map((item) => {
+                  {navItems.map((item) => {
                     const isActive = activeView === item.id;
                     return (
                       <button
@@ -526,15 +582,7 @@ export default function App() {
 
             {/* LIGHT MODE MOBILE SUB-NAV TAB STRIP */}
             <div className="md:hidden bg-white border-b border-[#E4E4E7] px-4 py-2.5 flex items-center gap-2 overflow-x-auto whitespace-nowrap sticky top-16 z-20 shadow-sm shrink-0 scrollbar-none">
-              {[
-                { id: 'today', label: 'Day Planner', badge: tasks.length },
-                { id: 'undone', label: 'Undone Tasks', badge: undoneCount },
-                { id: 'goals', label: 'Goals & Review' },
-                { id: 'patterns', label: 'Analytics' },
-                { id: 'backlog', label: 'Backlog', badge: backlogTasks.length },
-                { id: 'history', label: 'Log History' },
-                { id: 'settings', label: 'Settings' },
-              ].map((item) => {
+              {navItems.map((item) => {
                 const isActive = activeView === item.id;
                 return (
                   <button
@@ -570,15 +618,7 @@ export default function App() {
 
               {/* Icon-Only Vertical Navigation Links */}
               <nav className="flex flex-col items-center gap-4">
-                {[
-                  { id: 'today', label: 'Day Planner', icon: LayoutDashboard, badge: tasks.length },
-                  { id: 'undone', label: 'Undone Tasks', icon: ListTodo, badge: undoneCount },
-                  { id: 'goals', label: 'Goals & Review', icon: Target },
-                  { id: 'patterns', label: 'Analytics', icon: PieChart },
-                  { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
-                  { id: 'history', label: 'Log History', icon: History },
-                  { id: 'settings', label: 'Settings', icon: Settings },
-                ].map((item) => {
+                {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeView === item.id;
                   return (
@@ -692,15 +732,7 @@ export default function App() {
 
               {/* DARK MODE MOBILE SUB-NAV TAB STRIP */}
               <div className="md:hidden bg-[#0C0B0E] border-b border-[#1F192E] px-4 py-2.5 flex items-center gap-2 overflow-x-auto whitespace-nowrap z-20 shrink-0 scrollbar-none">
-                {[
-                  { id: 'today', label: 'Day Planner', icon: LayoutDashboard, badge: tasks.length },
-                  { id: 'undone', label: 'Undone Tasks', icon: ListTodo, badge: undoneCount },
-                  { id: 'goals', label: 'Goals & Review', icon: Target },
-                  { id: 'patterns', label: 'Analytics', icon: PieChart },
-                  { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
-                  { id: 'history', label: 'Log History', icon: History },
-                  { id: 'settings', label: 'Settings', icon: Settings },
-                ].map((item) => {
+                {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeView === item.id;
                   return (

@@ -1,26 +1,22 @@
 -- DailyOS Supabase PostgreSQL Database Schema Setup
 
--- 1. USERS TABLE
+-- 1. USERS TABLE (Primary key mapped to Clerk User ID string e.g. user_2p...)
 CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
-  password_hash TEXT,
   timezone TEXT DEFAULT 'UTC',
-  otp_code TEXT,
-  otp_expires_at TIMESTAMPTZ,
-  otp_attempts INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Default system user initialization
 INSERT INTO users (id, email, timezone)
-VALUES ('00000000-0000-0000-0000-000000000001', 'user@dailyos.local', 'UTC')
+VALUES ('user_000000000000000000000000001', 'user@dailyos.local', 'UTC')
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. TASKS TABLE
 CREATE TABLE IF NOT EXISTS tasks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   category TEXT DEFAULT 'personal',
   estimated_minutes INT DEFAULT 30,
@@ -36,7 +32,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 -- 3. EVENTS TABLE
 CREATE TABLE IF NOT EXISTS events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   event_date DATE NOT NULL,
   event_time TEXT,
@@ -48,7 +44,7 @@ CREATE TABLE IF NOT EXISTS events (
 -- 4. DAILY LOGS TABLE
 CREATE TABLE IF NOT EXISTS daily_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
   log_date DATE NOT NULL,
   tasks_completed INT DEFAULT 0,
   tasks_skipped INT DEFAULT 0,
@@ -62,7 +58,7 @@ CREATE TABLE IF NOT EXISTS daily_logs (
 -- 5. PATTERNS TABLE
 CREATE TABLE IF NOT EXISTS patterns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
   computed_at TIMESTAMPTZ DEFAULT NOW(),
   most_productive_hours JSONB,
   worst_category TEXT,
@@ -74,7 +70,7 @@ CREATE TABLE IF NOT EXISTS patterns (
 -- 6. GOALS TABLE
 CREATE TABLE IF NOT EXISTS goals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   period_type TEXT NOT NULL, -- 'daily' | 'weekly' | 'monthly'
   period_key TEXT NOT NULL,  -- 'YYYY-MM-DD' | 'YYYY-Wxx' | 'YYYY-MM'

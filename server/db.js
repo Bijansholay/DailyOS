@@ -25,7 +25,7 @@ function loadEnv() {
 
 loadEnv();
 
-const { SUPABASE_URL, SUPABASE_KEY, DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000001' } = process.env;
+const { SUPABASE_URL, SUPABASE_KEY, DEFAULT_USER_ID = 'user_000000000000000000000000001' } = process.env;
 
 let supabase = null;
 const mode = 'supabase';
@@ -202,42 +202,45 @@ export const dbEngine = {
     }
   },
 
-  async createUser({ email, password_hash }) {
-    const id = generateUuid();
+  async createUser({ id, email }) {
+    const userId = id || `user_${Date.now()}`;
     const newUser = {
-      id,
-      email: email.toLowerCase().trim(),
-      password_hash,
+      id: userId,
+      email: (email || '').toLowerCase().trim(),
       created_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase.from('users').insert(newUser).select().single();
-    if (error) {
-      if (error.code === '23505' || error.message?.includes('already exists')) {
-        throw new Error('User with this email already exists');
-      }
+    const { data, error } = await supabase.from('users').insert(newUser).select().maybeSingle();
+    if (error && !error.message?.includes('already exists')) {
       throw error;
     }
-    return data;
+    return data || newUser;
+  },
+
+  async syncClerkUser({ id, email }) {
+    if (!id) return null;
+    const cleanEmail = (email || '').toLowerCase().trim();
+    const existing = await this.findUserById(id);
+    if (existing) return existing;
+
+    const newUser = {
+      id,
+      email: cleanEmail || `${id}@clerk.local`,
+      created_at: new Date().toISOString()
+    };
+    const { data } = await supabase.from('users').insert(newUser).select().maybeSingle();
+    return data || newUser;
   },
 
   async findUserByEmail(email) {
+    if (!email) return null;
     const { data } = await supabase.from('users').select('*').eq('email', email.toLowerCase().trim()).maybeSingle();
     return data;
   },
 
   async findUserById(id) {
+    if (!id) return null;
     const { data } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
-    return data;
-  },
-
-  async updateUserOtp(userId, { otpCode, otpExpiresAt, attempts = 0 }) {
-    const updates = {
-      otp_code: otpCode,
-      otp_expires_at: otpExpiresAt,
-      otp_attempts: attempts
-    };
-    const { data } = await supabase.from('users').update(updates).eq('id', userId).select().maybeSingle();
     return data;
   },
 

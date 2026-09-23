@@ -89,8 +89,10 @@ export default function TodayView({
   const overdueTasks = tasks.filter(t => t.status !== 'done' && t.scheduled_for && t.scheduled_for < selectedDate);
   const upcomingTasks = tasks.filter(t => t.status !== 'done');
   const completionRate = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
+  const estimatedMinutesTotal = tasks.reduce((acc, t) => acc + (parseInt(t.estimated_minutes, 10) || 0), 0);
+  const completedMinutes = tasks.filter(t => t.status === 'done').reduce((acc, t) => acc + (parseInt(t.estimated_minutes, 10) || 0), 0);
 
-  // Dynamic hourly completion pace calculated from real task records
+  // Hourly completion pace calculated from real task records
   const timeSlots = [
     { label: '7am', hour: 7, avg: 1.2 },
     { label: '9am', hour: 9, avg: 2.1 },
@@ -124,282 +126,18 @@ export default function TodayView({
 
   const streakCount = (dailyLog?.tasks_completed !== undefined) ? dailyLog.tasks_completed : completedCount;
 
-  // DARK MODE LAYOUT (Reference A — Nixtio Style)
   const handleExportIcs = () => {
     const content = generateIcsContent(tasks, events, selectedDate);
     downloadIcsFile(`DailyOS-Schedule-${selectedDate}.ics`, content);
   };
 
-  if (theme === 'dark') {
-    return (
-      <div className="space-y-6">
-        {/* TOP HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Today</h1>
-            <p className="text-xs text-[#9C95A8] mt-1">{formattedJournalDate} • {completedCount} of {tasks.length} tasks completed</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <SecondaryButton onClick={handleExportIcs} icon={Download}>
-              Export Schedule (.ics)
-            </SecondaryButton>
-            <PrimaryButton
-              onClick={() => setShowTaskForm(!showTaskForm)}
-              icon={Plus}
-            >
-              Add Task
-            </PrimaryButton>
-          </div>
-        </div>
-
-        {/* HORIZONTAL DATE RIBBON (Reference A Style) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {calendarDays.map((d) => {
-            const isSelected = d.dateStr === selectedDate;
-            return (
-              <button
-                key={d.dateStr}
-                onClick={() => onSelectDate && onSelectDate(d.dateStr)}
-                className={`flex flex-col items-center justify-center min-w-[64px] px-3 py-2.5 rounded-2xl transition-all ${
-                  isSelected
-                    ? 'bg-[#F5F1E8] text-[#121114] font-bold shadow-lg shadow-purple-950/40 scale-105'
-                    : 'bg-[#1C1924] text-[#9C95A8] border border-[#2D273C] hover:text-white hover:border-[#423A57]'
-                }`}
-              >
-                <span className="text-[10px] font-semibold uppercase">{d.dayNum}</span>
-                <span className="text-xs">{d.dayName}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* TASK CREATION FORM */}
-        {showTaskForm && (
-          <form onSubmit={handleTaskSubmit} className="bg-[#1C1924] border border-[#9333EA]/40 rounded-2xl p-5 space-y-4 shadow-xl">
-            <h3 className="text-sm font-semibold text-white">New Task</h3>
-            <input
-              type="text"
-              placeholder="What do you plan to accomplish?"
-              value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#121114] border border-[#2D273C] text-xs text-white outline-none focus:border-[#9333EA]"
-              required
-              autoFocus
-            />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <select value={taskCategory} onChange={(e) => setTaskCategory(e.target.value)} className="px-3 py-2 rounded-xl bg-[#121114] border border-[#2D273C] text-xs text-white">
-                <option value="work">Work</option>
-                <option value="school">School</option>
-                <option value="personal">Personal</option>
-                <option value="health">Health</option>
-              </select>
-              <select value={taskEst} onChange={(e) => setTaskEst(e.target.value)} className="px-3 py-2 rounded-xl bg-[#121114] border border-[#2D273C] text-xs text-white">
-                <option value="15">15 min</option>
-                <option value="30">30 min</option>
-                <option value="45">45 min</option>
-                <option value="60">60 min</option>
-              </select>
-              <select value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)} className="px-3 py-2 rounded-xl bg-[#121114] border border-[#2D273C] text-xs text-white">
-                <option value="high">High Priority</option>
-                <option value="medium">Medium Priority</option>
-                <option value="low">Low Priority</option>
-              </select>
-              <input type="time" value={taskTime} onChange={(e) => setTaskTime(e.target.value)} className="px-3 py-2 rounded-xl bg-[#121114] border border-[#2D273C] text-xs text-white" />
-            </div>
-            <div className="flex justify-end gap-2 pt-1">
-              <SecondaryButton onClick={() => setShowTaskForm(false)}>Cancel</SecondaryButton>
-              <PrimaryButton type="submit">Create Task</PrimaryButton>
-            </div>
-          </form>
-        )}
-
-        {/* MAIN DASHBOARD CONTENT (Reference A Grid Layout) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT 2 COLS: CHART & ACTIVE SCHEDULE */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* PACE & ENERGY CHART (Reference A Statistics Area Chart) */}
-            <div className="bg-[#1C1924] border border-[#2D273C] rounded-2xl p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-white">Completion & Energy Pace</h3>
-                  <p className="text-[11px] text-[#9C95A8]">Solid purple: Today • Dashed yellow: Average pace</p>
-                </div>
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#9333EA]" />
-                    <span className="text-slate-300 text-[11px]">Today</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15]" />
-                    <span className="text-slate-300 text-[11px]">Avg Pace</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="h-52 w-full pt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData}>
-                    <defs>
-                      <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#9333EA" stopOpacity={0.6}/>
-                        <stop offset="95%" stopColor="#9333EA" stopOpacity={0.0}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="time" stroke="#665E75" fontSize={10} tickLine={false} />
-                    <YAxis stroke="#665E75" fontSize={10} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#121114', borderColor: '#2D273C', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
-                    <Area type="monotone" dataKey="today" stroke="#9333EA" strokeWidth={3} fillOpacity={1} fill="url(#purpleGrad)" />
-                    <Line type="monotone" dataKey="average" stroke="#FACC15" strokeWidth={2} strokeDasharray="4 4" dot={false} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* AI BRIEFING & TODAY TASKS */}
-            <div className="bg-[#1C1924] border border-[#2D273C] rounded-2xl p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-[#2D273C] pb-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#9333EA]" />
-                  <h3 className="text-sm font-semibold text-white">Focus Schedule</h3>
-                </div>
-                <button
-                  onClick={handleTriggerBrief}
-                  disabled={isGeneratingBrief}
-                  className="text-xs text-[#9C95A8] hover:text-[#9333EA] flex items-center gap-1"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingBrief ? 'animate-spin' : ''}`} />
-                  <span>AI Briefing</span>
-                </button>
-              </div>
-
-              {tasks.length === 0 ? (
-                <div className="py-8 text-center text-[#9C95A8] text-xs italic">
-                  No tasks scheduled. Click "+ Add Task" to populate your planner.
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                    {tasks.map((t) => {
-                      const isDone = t.status === 'done';
-                      return (
-                        <SwipeableTaskCard
-                          key={t.id}
-                          onSwipeRight={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                          onSwipeLeft={() => onStatusChange(t, 'pending')}
-                        >
-                          <div
-                            className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${
-                              isDone 
-                                ? 'bg-[#121114]/60 border-[#221D30] opacity-60' 
-                                : 'bg-[#121114] border-[#2D273C] hover:border-[#9333EA]/40'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <button
-                                onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                                className="text-slate-400 hover:text-[#9333EA] shrink-0"
-                              >
-                                {isDone ? <CheckCircle2 className="w-5 h-5 text-[#9333EA]" /> : <Circle className="w-5 h-5 text-slate-600" />}
-                              </button>
-                              <div className="min-w-0">
-                                <h4 className={`text-xs font-semibold truncate ${isDone ? 'line-through text-slate-500' : 'text-white'}`}>
-                                  {t.title}
-                                </h4>
-                                <span className="text-[10px] text-[#9C95A8] capitalize">
-                                  {t.category} • {t.scheduled_time ? formatTimeRange(t.scheduled_time, t.estimated_minutes, timeFormat) : `${t.estimated_minutes}m est`}
-                                </span>
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                              className={`px-3 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-all ${
-                                isDone ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40' : 'bg-[#9333EA] text-white hover:bg-[#7C3AED]'
-                              }`}
-                            >
-                              {isDone ? 'Completed ✓' : 'Mark Done'}
-                            </button>
-                          </div>
-                        </SwipeableTaskCard>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* RIGHT COL: UP NEXT, OVERDUE, & STREAK HERO CARD */}
-          <div className="space-y-6">
-            {/* UP NEXT LIST (Reference A "Starting Calls" List Style) */}
-            <div className="bg-[#1C1924] border border-[#2D273C] rounded-2xl p-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Up Next</h3>
-              {upcomingTasks.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-2">All tasks completed!</p>
-              ) : (
-                <div className="space-y-2">
-                  {upcomingTasks.slice(0, 3).map((t) => (
-                    <div key={t.id} className="p-2.5 rounded-xl bg-[#121114] border border-[#2D273C] flex items-center justify-between">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 text-xs font-bold shrink-0">
-                          {t.category ? t.category.charAt(0).toUpperCase() : 'T'}
-                        </div>
-                        <span className="text-xs font-semibold text-slate-200 truncate">{t.title}</span>
-                      </div>
-                      <span className="text-[10px] font-mono text-purple-300 shrink-0">
-                        {t.scheduled_time ? formatTime(t.scheduled_time, timeFormat) : `${t.estimated_minutes}m`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* OVERDUE LIST (Reference A "Break" List Style with Elapsed Pills) */}
-            <div className="bg-[#1C1924] border border-[#2D273C] rounded-2xl p-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#EC4899]">Overdue Queue</h3>
-              {overdueTasks.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-1">No overdue items!</p>
-              ) : (
-                <div className="space-y-2">
-                  {overdueTasks.map((t) => (
-                    <div key={t.id} className="p-2.5 rounded-xl bg-[#121114] border border-[#2D273C] flex items-center justify-between">
-                      <div className="min-w-0">
-                        <h5 className="text-xs font-medium text-slate-200 truncate">{t.title}</h5>
-                        <span className="text-[10px] text-slate-500 capitalize">{t.category}</span>
-                      </div>
-                      <span className="px-2 py-0.5 rounded-full bg-[#EC4899]/20 text-[#EC4899] border border-[#EC4899]/30 text-[10px] font-mono font-bold shrink-0">
-                        Overdue
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* HERO GRADIENT STAT CARD (Reference A Bottom-Right Purple-Orange Card) */}
-            <div className="bg-gradient-to-tr from-[#7C3AED] via-[#9333EA] to-[#F59E0B] text-white rounded-3xl p-6 shadow-xl shadow-purple-950/40 relative overflow-hidden space-y-2">
-              <div className="flex items-center gap-2 opacity-80">
-                <Flame className="w-5 h-5 text-amber-200" />
-                <span className="text-xs font-bold uppercase tracking-wider">Consistency Record</span>
-              </div>
-              <div className="pt-2">
-                <h2 className="text-5xl font-extrabold tracking-tight">{streakCount}</h2>
-                <p className="text-xs font-semibold text-purple-100 mt-1">day streak achieved</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // LIGHT MODE LAYOUT (Reference B — Zentra + Mobile Task App Style)
   return (
-    <div className="space-y-8">
-      {/* HEADLINE + SUBTITLE (Reference B Headline Style) */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E4E4E7] pb-6">
+    <div className="space-y-6">
+      {/* TOP HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-4">
         <div>
-          <h1 className="text-4xl font-extrabold text-[var(--text-main)] tracking-tight">Today</h1>
-          <p className="text-xs text-[var(--text-muted)] mt-1 font-medium">{formattedJournalDate} • {completedCount} of {tasks.length} tasks completed</p>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-[var(--text-main)] tracking-tight">Today</h1>
+          <p className="text-xs text-[var(--text-muted)] mt-1">{formattedJournalDate} • {completedCount} of {tasks.length} tasks completed</p>
         </div>
         <div className="flex items-center gap-2">
           <SecondaryButton onClick={handleExportIcs} icon={Download}>
@@ -414,8 +152,8 @@ export default function TodayView({
         </div>
       </div>
 
-      {/* HORIZONTAL DAY-STRIP CALENDAR (Reference B Mobile Style) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      {/* HORIZONTAL DATE RIBBON */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {calendarDays.map((d) => {
           const isSelected = d.dateStr === selectedDate;
           return (
@@ -425,7 +163,7 @@ export default function TodayView({
               className={`flex flex-col items-center justify-center min-w-[64px] px-3.5 py-2.5 rounded-2xl transition-all ${
                 isSelected
                   ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold shadow-md scale-105'
-                  : 'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-color)] hover:border-[var(--text-muted)]'
+                  : 'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-color)] hover:text-[var(--text-main)] hover:border-[var(--text-muted)]'
               }`}
             >
               <span className="text-[10px] font-semibold uppercase">{d.dayNum}</span>
@@ -435,13 +173,13 @@ export default function TodayView({
         })}
       </div>
 
-      {/* TASK FORM */}
+      {/* TASK CREATION FORM */}
       {showTaskForm && (
-        <form onSubmit={handleTaskSubmit} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 space-y-4 shadow-sm">
+        <form onSubmit={handleTaskSubmit} className="bg-[var(--bg-card)] border border-[var(--accent-primary)]/40 rounded-2xl p-5 space-y-4 shadow-xl">
           <h3 className="text-sm font-semibold text-[var(--text-main)]">New Planner Task</h3>
           <input
             type="text"
-            placeholder="What needs to be done?"
+            placeholder="What do you plan to accomplish?"
             value={taskTitle}
             onChange={(e) => setTaskTitle(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] text-xs text-[var(--text-main)] outline-none focus:border-[var(--accent-primary)]"
@@ -475,7 +213,7 @@ export default function TodayView({
         </form>
       )}
 
-      {/* KPI ROW (Reference B Gross Volume / Stat Cards Style with Sparklines) */}
+      {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-2">
           <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Tasks Completed</span>
@@ -492,7 +230,7 @@ export default function TodayView({
           <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Completion Rate</span>
           <div className="flex items-baseline justify-between">
             <h2 className="text-3xl font-extrabold text-[var(--text-main)]">{completionRate}%</h2>
-            <span className="text-xs font-semibold text-blue-600 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">+12% vs avg</span>
+            <span className="text-xs font-semibold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">{completedMinutes} / {estimatedMinutesTotal} mins</span>
           </div>
           <div className="w-full bg-[var(--bg-base)] rounded-full h-1.5 mt-2 overflow-hidden border border-[var(--border-color)]">
             <div className="bg-[var(--accent-primary)] h-1.5 rounded-full" style={{ width: `${completionRate}%` }} />
@@ -511,70 +249,181 @@ export default function TodayView({
         </div>
       </div>
 
-      {/* TASK LIST (Reference B Mobile Screen Card Style) */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">Today's Action Items</h3>
-        {tasks.length === 0 ? (
-          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-8 text-center text-[var(--text-muted)] text-xs italic shadow-sm">
-            No active tasks scheduled for today.
+      {/* MAIN DASHBOARD CONTENT */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT 2 COLS: CHART & ACTIVE SCHEDULE */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* PACE CHART */}
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--text-main)]">Completion & Energy Pace</h3>
+                <p className="text-[11px] text-[var(--text-muted)]">Solid line: Today • Dashed line: Average pace</p>
+              </div>
+              <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#9333EA]" />
+                  <span className="text-[var(--text-muted)] text-[11px]">Today</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#FACC15]" />
+                  <span className="text-[var(--text-muted)] text-[11px]">Avg Pace</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-52 w-full pt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#9333EA" stopOpacity={0.6}/>
+                      <stop offset="95%" stopColor="#9333EA" stopOpacity={0.0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="time" stroke="#888888" fontSize={10} tickLine={false} />
+                  <YAxis stroke="#888888" fontSize={10} tickLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '12px', fontSize: '11px', color: 'var(--text-main)' }} />
+                  <Area type="monotone" dataKey="today" stroke="#9333EA" strokeWidth={3} fillOpacity={1} fill="url(#purpleGrad)" />
+                  <Line type="monotone" dataKey="average" stroke="#FACC15" strokeWidth={2} strokeDasharray="4 4" dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {tasks.map((t) => {
-              const isDone = t.status === 'done';
-              return (
-                <SwipeableTaskCard
-                  key={t.id}
-                  onSwipeRight={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                  onSwipeLeft={() => onStatusChange(t, 'pending')}
-                >
-                  <div
-                    className={`bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 ${
-                      isDone ? 'opacity-60 bg-[var(--bg-base)]' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      {/* Category dot */}
-                      <span className="w-3 h-3 rounded-full bg-[var(--accent-primary)] shrink-0" />
 
-                      <div className="min-w-0">
-                        <h4 className={`text-base font-bold tracking-tight text-[var(--text-main)] truncate ${isDone ? 'line-through text-[var(--text-muted)]' : ''}`}>
-                          {t.title}
-                        </h4>
-                        <p className="text-xs text-[var(--text-muted)] mt-0.5 font-medium capitalize">
-                          {t.category} • {t.scheduled_time ? formatTimeRange(t.scheduled_time, t.estimated_minutes, timeFormat) : `${t.estimated_minutes} min estimated`}
-                        </p>
-                      </div>
-                    </div>
+          {/* TODAY TASKS */}
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
+                <h3 className="text-sm font-semibold text-[var(--text-main)]">Focus Schedule</h3>
+              </div>
+              <button
+                onClick={handleTriggerBrief}
+                disabled={isGeneratingBrief}
+                className="text-xs text-[var(--text-muted)] hover:text-[var(--accent-primary)] flex items-center gap-1"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingBrief ? 'animate-spin' : ''}`} />
+                <span>AI Briefing</span>
+              </button>
+            </div>
 
-                    {/* Mobile Task Pill CTA */}
-                    <button
-                      onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                      className={`px-5 py-2 rounded-full text-xs font-semibold shrink-0 transition-all ${
-                        isDone 
-                          ? 'bg-[var(--bg-base)] text-[var(--text-muted)] border border-[var(--border-color)] hover:text-[var(--text-main)]' 
-                          : 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm hover:opacity-90'
-                      }`}
+            {tasks.length === 0 ? (
+              <div className="py-8 text-center text-[var(--text-muted)] text-xs italic">
+                No tasks scheduled. Click "+ Add Task" to populate your planner.
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {tasks.map((t) => {
+                  const isDone = t.status === 'done';
+                  return (
+                    <SwipeableTaskCard
+                      key={t.id}
+                      onSwipeRight={() => onStatusChange(t, isDone ? 'pending' : 'done')}
+                      onSwipeLeft={() => onStatusChange(t, 'pending')}
                     >
-                      {isDone ? 'Completed ✓' : 'Mark Done'}
-                    </button>
-                  </div>
-                </SwipeableTaskCard>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                      <div
+                        className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${
+                          isDone 
+                            ? 'bg-[var(--bg-base)]/60 border-[var(--border-color)] opacity-60' 
+                            : 'bg-[var(--bg-base)] border-[var(--border-color)] hover:border-[var(--accent-primary)]/40'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <button
+                            onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
+                            className="text-[var(--text-muted)] hover:text-[var(--accent-primary)] shrink-0"
+                          >
+                            {isDone ? <CheckCircle2 className="w-5 h-5 text-[var(--accent-primary)]" /> : <Circle className="w-5 h-5" />}
+                          </button>
+                          <div className="min-w-0">
+                            <h4 className={`text-xs font-semibold truncate ${isDone ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-main)]'}`}>
+                              {t.title}
+                            </h4>
+                            <span className="text-[10px] text-[var(--text-muted)] capitalize">
+                              {t.category} • {t.scheduled_time ? formatTimeRange(t.scheduled_time, t.estimated_minutes, timeFormat) : `${t.estimated_minutes}m est`}
+                            </span>
+                          </div>
+                        </div>
 
-      {/* BOTTOM GRADIENT HERO CARD (Reference B 75% Stat Card Style) */}
-      <div className="bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 text-white rounded-3xl p-6 shadow-lg relative overflow-hidden flex items-center justify-between">
-        <div className="space-y-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-sky-100">Weekly Target Momentum</span>
-          <h2 className="text-4xl font-extrabold tracking-tight">85%</h2>
-          <p className="text-xs text-sky-100">Overall weekly task completion rate</p>
+                        <button
+                          onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
+                          className={`px-3 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-all ${
+                            isDone 
+                              ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40' 
+                              : 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] hover:opacity-90'
+                          }`}
+                        >
+                          {isDone ? 'Completed ✓' : 'Mark Done'}
+                        </button>
+                      </div>
+                    </SwipeableTaskCard>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-bold text-white text-xl border border-white/30">
-          🎯
+
+        {/* RIGHT COL: UP NEXT, OVERDUE, & STREAK HERO CARD */}
+        <div className="space-y-6">
+          {/* UP NEXT LIST */}
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 space-y-3 shadow-sm">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Up Next</h3>
+            {upcomingTasks.length === 0 ? (
+              <p className="text-xs text-[var(--text-muted)] italic py-2">All tasks completed!</p>
+            ) : (
+              <div className="space-y-2">
+                {upcomingTasks.slice(0, 3).map((t) => (
+                  <div key={t.id} className="p-2.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-300 text-xs font-bold shrink-0">
+                        {t.category ? t.category.charAt(0).toUpperCase() : 'T'}
+                      </div>
+                      <span className="text-xs font-semibold text-[var(--text-main)] truncate">{t.title}</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-[var(--accent-primary)] shrink-0">
+                      {t.scheduled_time ? formatTime(t.scheduled_time, timeFormat) : `${t.estimated_minutes}m`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* OVERDUE LIST */}
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 space-y-3 shadow-sm">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#EC4899]">Overdue Queue</h3>
+            {overdueTasks.length === 0 ? (
+              <p className="text-xs text-[var(--text-muted)] italic py-1">No overdue items!</p>
+            ) : (
+              <div className="space-y-2">
+                {overdueTasks.map((t) => (
+                  <div key={t.id} className="p-2.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-between">
+                    <div className="min-w-0">
+                      <h5 className="text-xs font-medium text-[var(--text-main)] truncate">{t.title}</h5>
+                      <span className="text-[10px] text-[var(--text-muted)] capitalize">{t.category}</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-[#EC4899]/20 text-[#EC4899] border border-[#EC4899]/30 text-[10px] font-mono font-bold shrink-0">
+                      Overdue
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* HERO GRADIENT STAT CARD */}
+          <div className="bg-gradient-to-tr from-[#7C3AED] via-[#9333EA] to-[#F59E0B] text-white rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-2">
+            <div className="flex items-center gap-2 opacity-80">
+              <Flame className="w-5 h-5 text-amber-200" />
+              <span className="text-xs font-bold uppercase tracking-wider">Consistency Record</span>
+            </div>
+            <div className="pt-2">
+              <h2 className="text-5xl font-extrabold tracking-tight">{streakCount}</h2>
+              <p className="text-xs font-semibold text-purple-100 mt-1">day streak achieved</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

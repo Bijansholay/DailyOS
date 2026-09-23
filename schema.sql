@@ -3,9 +3,9 @@
 -- Enable UUID extension if needed
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Users table
+-- Users table (Primary key mapped to Clerk User ID string e.g. user_2p...)
 CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id TEXT PRIMARY KEY,
     email TEXT UNIQUE,
     timezone TEXT DEFAULT 'UTC',
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Tasks table
 CREATE TABLE IF NOT EXISTS tasks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     category TEXT NOT NULL DEFAULT 'personal', -- school, work, personal, health, etc.
     estimated_minutes INT NOT NULL DEFAULT 30,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 -- Events table
 CREATE TABLE IF NOT EXISTS events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     event_date DATE NOT NULL,
     event_time TIME,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS events (
 -- Daily Logs table
 CREATE TABLE IF NOT EXISTS daily_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     log_date DATE NOT NULL,
     tasks_completed INT DEFAULT 0,
     tasks_skipped INT DEFAULT 0,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS daily_logs (
 -- Patterns table (recomputed periodically)
 CREATE TABLE IF NOT EXISTS patterns (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     computed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     most_productive_hours JSONB, -- e.g. {"start": "09:00", "end": "12:00", "hourly_distribution": {...}}
     worst_category TEXT, -- category with highest skip rate

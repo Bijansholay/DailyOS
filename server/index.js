@@ -37,7 +37,8 @@ const HOST = process.env.HOST || '0.0.0.0';
 })();
 
 const app = express();
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_URL || '').split(',').map(o => o.trim()).filter(Boolean);
+app.use(cors({ origin: allowedOrigins.length > 0 ? allowedOrigins : true, credentials: true }));
 app.use(express.json());
 
 // API Routes
