@@ -673,9 +673,19 @@ export default function App() {
                   </button>
 
                   <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
-                    <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
+                    <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs" title={currentUser.email || 'User'}>
                       {currentUser.email ? currentUser.email.charAt(0).toUpperCase() : 'U'}
                     </span>
+                    {currentUser && (
+                      <button
+                        onClick={handleLogout}
+                        title="Sign Out of Account"
+                        className="px-2.5 py-1.5 rounded-full bg-[#1C1924] border border-[#2D273C] text-slate-300 hover:text-rose-400 hover:border-rose-500/40 transition-all flex items-center gap-1.5"
+                      >
+                        <LogOut className="w-3.5 h-3.5 shrink-0" />
+                        <span className="hidden sm:inline text-xs font-semibold">Sign Out</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </header>
@@ -805,6 +815,7 @@ export default function App() {
                 notificationsEnabled={notificationsEnabled}
                 onToggleNotifications={handleEnableNotifications}
                 currentUser={currentUser}
+                onLogout={handleLogout}
                 tasks={tasks}
                 events={events}
               />

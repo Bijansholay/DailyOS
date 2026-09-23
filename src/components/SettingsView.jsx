@@ -1,6 +1,6 @@
 import { 
   Sun, Moon, Bell, Shield, Download, Check, 
-  Settings, User, Sparkles, Sliders, Clock, Target, Calendar
+  Settings, User, Sparkles, Sliders, Clock, Target, Calendar, LogOut
 } from 'lucide-react';
 import { PrimaryButton, SecondaryButton } from './Button';
 import { generateIcsContent, downloadIcsFile } from '../utils/icsExport';
@@ -17,6 +17,7 @@ export default function SettingsView({
   notificationsEnabled, 
   onToggleNotifications, 
   currentUser,
+  onLogout,
   tasks,
   events
 }) {
@@ -268,8 +269,15 @@ export default function SettingsView({
 
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs py-1">
-            <span className="text-[var(--text-muted)]">Signed in as:</span>
-            <strong className="text-[var(--text-main)] font-mono">{currentUser?.email || 'Guest User'}</strong>
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--text-muted)]">Signed in as:</span>
+              <strong className="text-[var(--text-main)] font-mono">{currentUser?.email || 'Guest User'}</strong>
+            </div>
+            {onLogout && (
+              <SecondaryButton onClick={onLogout} icon={LogOut}>
+                Sign Out
+              </SecondaryButton>
+            )}
           </div>
 
           <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 border-t border-[var(--border-color)]">
