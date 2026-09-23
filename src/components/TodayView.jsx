@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { 
   CheckCircle2, Circle, Clock, Plus, 
-  Calendar, RefreshCw, XSquare, AlertCircle, Sparkles, Flame, Zap
+  Calendar, RefreshCw, XSquare, AlertCircle, Sparkles, Flame, Zap, Download
 } from 'lucide-react';
 import { AreaChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { PrimaryButton, SecondaryButton } from './Button';
+import { formatTime, formatTimeRange } from '../utils/timeFormat';
+import { generateIcsContent, downloadIcsFile } from '../utils/icsExport';
+import SwipeableTaskCard from './SwipeableTaskCard';
 
 export default function TodayView({ 
   selectedDate, 
@@ -16,7 +19,8 @@ export default function TodayView({
   onAddEvent,
   onGenerateAiBrief,
   theme,
-  onSelectDate 
+  onSelectDate,
+  timeFormat = '12h'
 }) {
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [isGeneratingBrief, setIsGeneratingBrief] = useState(false);
@@ -121,6 +125,11 @@ export default function TodayView({
   const streakCount = (dailyLog?.tasks_completed !== undefined) ? dailyLog.tasks_completed : completedCount;
 
   // DARK MODE LAYOUT (Reference A — Nixtio Style)
+  const handleExportIcs = () => {
+    const content = generateIcsContent(tasks, events, selectedDate);
+    downloadIcsFile(`DailyOS-Schedule-${selectedDate}.ics`, content);
+  };
+
   if (theme === 'dark') {
     return (
       <div className="space-y-6">
@@ -130,12 +139,17 @@ export default function TodayView({
             <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Today</h1>
             <p className="text-xs text-[#9C95A8] mt-1">{formattedJournalDate} • {completedCount} of {tasks.length} tasks completed</p>
           </div>
-          <PrimaryButton
-            onClick={() => setShowTaskForm(!showTaskForm)}
-            icon={Plus}
-          >
-            Add Task
-          </PrimaryButton>
+          <div className="flex items-center gap-2">
+            <SecondaryButton onClick={handleExportIcs} icon={Download}>
+              Export Schedule (.ics)
+            </SecondaryButton>
+            <PrimaryButton
+              onClick={() => setShowTaskForm(!showTaskForm)}
+              icon={Plus}
+            >
+              Add Task
+            </PrimaryButton>
+          </div>
         </div>
 
         {/* HORIZONTAL DATE RIBBON (Reference A Style) */}
@@ -264,43 +278,50 @@ export default function TodayView({
                 </div>
               ) : (
                 <div className="space-y-2.5">
-                  {tasks.map((t) => {
-                    const isDone = t.status === 'done';
-                    return (
-                      <div
-                        key={t.id}
-                        className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${
-                          isDone 
-                            ? 'bg-[#121114]/60 border-[#221D30] opacity-60' 
-                            : 'bg-[#121114] border-[#2D273C] hover:border-[#9333EA]/40'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <button
-                            onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                            className="text-slate-400 hover:text-[#9333EA] shrink-0"
-                          >
-                            {isDone ? <CheckCircle2 className="w-5 h-5 text-[#9333EA]" /> : <Circle className="w-5 h-5 text-slate-600" />}
-                          </button>
-                          <div className="min-w-0">
-                            <h4 className={`text-xs font-semibold truncate ${isDone ? 'line-through text-slate-500' : 'text-white'}`}>
-                              {t.title}
-                            </h4>
-                            <span className="text-[10px] text-[#9C95A8] capitalize">{t.category} • {t.estimated_minutes}m est</span>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                          className={`px-3 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-all ${
-                            isDone ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40' : 'bg-[#9333EA] text-white hover:bg-[#7C3AED]'
-                          }`}
+                    {tasks.map((t) => {
+                      const isDone = t.status === 'done';
+                      return (
+                        <SwipeableTaskCard
+                          key={t.id}
+                          onSwipeRight={() => onStatusChange(t, isDone ? 'pending' : 'done')}
+                          onSwipeLeft={() => onStatusChange(t, 'pending')}
                         >
-                          {isDone ? 'Completed ✓' : 'Mark Done'}
-                        </button>
-                      </div>
-                    );
-                  })}
+                          <div
+                            className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${
+                              isDone 
+                                ? 'bg-[#121114]/60 border-[#221D30] opacity-60' 
+                                : 'bg-[#121114] border-[#2D273C] hover:border-[#9333EA]/40'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <button
+                                onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
+                                className="text-slate-400 hover:text-[#9333EA] shrink-0"
+                              >
+                                {isDone ? <CheckCircle2 className="w-5 h-5 text-[#9333EA]" /> : <Circle className="w-5 h-5 text-slate-600" />}
+                              </button>
+                              <div className="min-w-0">
+                                <h4 className={`text-xs font-semibold truncate ${isDone ? 'line-through text-slate-500' : 'text-white'}`}>
+                                  {t.title}
+                                </h4>
+                                <span className="text-[10px] text-[#9C95A8] capitalize">
+                                  {t.category} • {t.scheduled_time ? formatTimeRange(t.scheduled_time, t.estimated_minutes, timeFormat) : `${t.estimated_minutes}m est`}
+                                </span>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
+                              className={`px-3 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-all ${
+                                isDone ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40' : 'bg-[#9333EA] text-white hover:bg-[#7C3AED]'
+                              }`}
+                            >
+                              {isDone ? 'Completed ✓' : 'Mark Done'}
+                            </button>
+                          </div>
+                        </SwipeableTaskCard>
+                      );
+                    })}
                 </div>
               )}
             </div>
@@ -323,7 +344,9 @@ export default function TodayView({
                         </div>
                         <span className="text-xs font-semibold text-slate-200 truncate">{t.title}</span>
                       </div>
-                      <span className="text-[10px] font-mono text-purple-300 shrink-0">{t.estimated_minutes}m</span>
+                      <span className="text-[10px] font-mono text-purple-300 shrink-0">
+                        {t.scheduled_time ? formatTime(t.scheduled_time, timeFormat) : `${t.estimated_minutes}m`}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -378,12 +401,17 @@ export default function TodayView({
           <h1 className="text-4xl font-extrabold text-[var(--text-main)] tracking-tight">Today</h1>
           <p className="text-xs text-[var(--text-muted)] mt-1 font-medium">{formattedJournalDate} • {completedCount} of {tasks.length} tasks completed</p>
         </div>
-        <PrimaryButton
-          onClick={() => setShowTaskForm(!showTaskForm)}
-          icon={Plus}
-        >
-          Add Task
-        </PrimaryButton>
+        <div className="flex items-center gap-2">
+          <SecondaryButton onClick={handleExportIcs} icon={Download}>
+            Export Schedule (.ics)
+          </SecondaryButton>
+          <PrimaryButton
+            onClick={() => setShowTaskForm(!showTaskForm)}
+            icon={Plus}
+          >
+            Add Task
+          </PrimaryButton>
+        </div>
       </div>
 
       {/* HORIZONTAL DAY-STRIP CALENDAR (Reference B Mobile Style) */}
@@ -495,38 +523,43 @@ export default function TodayView({
             {tasks.map((t) => {
               const isDone = t.status === 'done';
               return (
-                <div
+                <SwipeableTaskCard
                   key={t.id}
-                  className={`bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 ${
-                    isDone ? 'opacity-60 bg-[var(--bg-base)]' : ''
-                  }`}
+                  onSwipeRight={() => onStatusChange(t, isDone ? 'pending' : 'done')}
+                  onSwipeLeft={() => onStatusChange(t, 'pending')}
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    {/* Category dot */}
-                    <span className="w-3 h-3 rounded-full bg-[var(--accent-primary)] shrink-0" />
-
-                    <div className="min-w-0">
-                      <h4 className={`text-base font-bold tracking-tight text-[var(--text-main)] truncate ${isDone ? 'line-through text-[var(--text-muted)]' : ''}`}>
-                        {t.title}
-                      </h4>
-                      <p className="text-xs text-[var(--text-muted)] mt-0.5 font-medium capitalize">
-                        {t.category} • {t.estimated_minutes} min estimated
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Mobile Task Pill CTA */}
-                  <button
-                    onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                    className={`px-5 py-2 rounded-full text-xs font-semibold shrink-0 transition-all ${
-                      isDone 
-                        ? 'bg-[var(--bg-base)] text-[var(--text-muted)] border border-[var(--border-color)] hover:text-[var(--text-main)]' 
-                        : 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm hover:opacity-90'
+                  <div
+                    className={`bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 ${
+                      isDone ? 'opacity-60 bg-[var(--bg-base)]' : ''
                     }`}
                   >
-                    {isDone ? 'Completed ✓' : 'Mark Done'}
-                  </button>
-                </div>
+                    <div className="flex items-center gap-4 min-w-0">
+                      {/* Category dot */}
+                      <span className="w-3 h-3 rounded-full bg-[var(--accent-primary)] shrink-0" />
+
+                      <div className="min-w-0">
+                        <h4 className={`text-base font-bold tracking-tight text-[var(--text-main)] truncate ${isDone ? 'line-through text-[var(--text-muted)]' : ''}`}>
+                          {t.title}
+                        </h4>
+                        <p className="text-xs text-[var(--text-muted)] mt-0.5 font-medium capitalize">
+                          {t.category} • {t.scheduled_time ? formatTimeRange(t.scheduled_time, t.estimated_minutes, timeFormat) : `${t.estimated_minutes} min estimated`}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Mobile Task Pill CTA */}
+                    <button
+                      onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
+                      className={`px-5 py-2 rounded-full text-xs font-semibold shrink-0 transition-all ${
+                        isDone 
+                          ? 'bg-[var(--bg-base)] text-[var(--text-muted)] border border-[var(--border-color)] hover:text-[var(--text-main)]' 
+                          : 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm hover:opacity-90'
+                      }`}
+                    >
+                      {isDone ? 'Completed ✓' : 'Mark Done'}
+                    </button>
+                  </div>
+                </SwipeableTaskCard>
               );
             })}
           </div>

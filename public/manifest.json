@@ -1,0 +1,19 @@
+{
+  "short_name": "DailyOS",
+  "name": "DailyOS — AI Personal Task & Life Dashboard",
+  "description": "Your ultimate personal operating system for daily productivity, tasks, and goal review.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512 192x192 64x64 32x32",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0C0B0E",
+  "theme_color": "#0C0B0E",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities", "lifestyle"]
+}

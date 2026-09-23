@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
-  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock, Bell, ListTodo, Settings, Sun, Moon
+  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock, Bell, ListTodo, Settings, Sun, Moon, Target
 } from 'lucide-react';
 import { requestNotificationPermission, startTaskNotificationScheduler, sendDesktopNotification } from './utils/notifications';
 
@@ -11,16 +11,24 @@ import BacklogView from './components/BacklogView';
 import LogHistoryView from './components/LogHistoryView';
 import UndoneTasksView from './components/UndoneTasksView';
 import SettingsView from './components/SettingsView';
+import GoalsView from './components/GoalsView';
 import LandingPage from './components/LandingPage';
 import CompletionModal from './components/CompletionModal';
 import AuthModal from './components/AuthModal';
 
 export default function App() {
-  const [activeView, setActiveView] = useState('today'); // today | undone | patterns | backlog | history | settings
+  const [activeView, setActiveView] = useState('today'); // today | undone | goals | patterns | backlog | history | settings
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   // Theme State ('dark' | 'light')
   const [theme, setTheme] = useState(() => localStorage.getItem('dailyos_theme') || 'dark');
+
+  // Time Format Preference ('12h' | '24h' | 'range')
+  const [timeFormat, setTimeFormat] = useState(() => localStorage.getItem('dailyos_time_format') || '12h');
+
+  // Daily Goal Targets
+  const [dailyTaskTarget, setDailyTaskTarget] = useState(() => Number(localStorage.getItem('dailyos_task_target')) || 5);
+  const [dailyFocusTarget, setDailyFocusTarget] = useState(() => Number(localStorage.getItem('dailyos_focus_target')) || 240);
 
   useEffect(() => {
     localStorage.setItem('dailyos_theme', theme);
@@ -37,6 +45,22 @@ export default function App() {
     const nextTheme = newTheme || (theme === 'dark' ? 'light' : 'dark');
     setTheme(nextTheme);
     showToast(`Switched to ${nextTheme === 'light' ? 'Light Sky' : 'Dark Journal'} theme`);
+  };
+
+  const handleToggleTimeFormat = (newFormat) => {
+    setTimeFormat(newFormat);
+    localStorage.setItem('dailyos_time_format', newFormat);
+    showToast(`Time format set to ${newFormat === '12h' ? '12-Hour AM/PM' : newFormat === '24h' ? '24-Hour Exact' : 'Time Range Display'}`);
+  };
+
+  const handleUpdateDailyTaskTarget = (targetVal) => {
+    setDailyTaskTarget(targetVal);
+    localStorage.setItem('dailyos_task_target', targetVal);
+  };
+
+  const handleUpdateDailyFocusTarget = (targetVal) => {
+    setDailyFocusTarget(targetVal);
+    localStorage.setItem('dailyos_focus_target', targetVal);
   };
 
   // Auth State
@@ -59,7 +83,7 @@ export default function App() {
   const [events, setEvents] = useState([]);
   const [dailyLog, setDailyLog] = useState(null);
   const [pattern, setPattern] = useState(null);
-  const [dbMode, setDbMode] = useState('sqlite');
+  const [dbMode, setDbMode] = useState('supabase');
 
   // Completion modal state
   const [completionModalTask, setCompletionModalTask] = useState(null);
@@ -441,6 +465,7 @@ export default function App() {
                   {[
                     { id: 'today', label: 'Day Planner', badge: tasks.length },
                     { id: 'undone', label: 'Undone Tasks', badge: undoneCount },
+                    { id: 'goals', label: 'Goals & Review' },
                     { id: 'patterns', label: 'Analytics' },
                     { id: 'backlog', label: 'Backlog', badge: backlogTasks.length },
                     { id: 'history', label: 'Log History' },
@@ -504,6 +529,7 @@ export default function App() {
               {[
                 { id: 'today', label: 'Day Planner', badge: tasks.length },
                 { id: 'undone', label: 'Undone Tasks', badge: undoneCount },
+                { id: 'goals', label: 'Goals & Review' },
                 { id: 'patterns', label: 'Analytics' },
                 { id: 'backlog', label: 'Backlog', badge: backlogTasks.length },
                 { id: 'history', label: 'Log History' },
@@ -547,6 +573,7 @@ export default function App() {
                 {[
                   { id: 'today', label: 'Day Planner', icon: LayoutDashboard, badge: tasks.length },
                   { id: 'undone', label: 'Undone Tasks', icon: ListTodo, badge: undoneCount },
+                  { id: 'goals', label: 'Goals & Review', icon: Target },
                   { id: 'patterns', label: 'Analytics', icon: PieChart },
                   { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
                   { id: 'history', label: 'Log History', icon: History },
@@ -658,6 +685,7 @@ export default function App() {
                 {[
                   { id: 'today', label: 'Day Planner', icon: LayoutDashboard, badge: tasks.length },
                   { id: 'undone', label: 'Undone Tasks', icon: ListTodo, badge: undoneCount },
+                  { id: 'goals', label: 'Goals & Review', icon: Target },
                   { id: 'patterns', label: 'Analytics', icon: PieChart },
                   { id: 'backlog', label: 'Backlog', icon: Inbox, badge: backlogTasks.length },
                   { id: 'history', label: 'Log History', icon: History },
@@ -706,6 +734,7 @@ export default function App() {
                   onGenerateAiBrief={handleGenerateAiBrief}
                   theme={theme}
                   onSelectDate={setSelectedDate}
+                  timeFormat={timeFormat}
                 />
               )}
 
@@ -718,6 +747,19 @@ export default function App() {
                 onScheduleTask={handleScheduleTask}
                 onDeleteTask={handleDeleteTask}
                 theme={theme}
+                timeFormat={timeFormat}
+              />
+            )}
+
+            {activeView === 'goals' && (
+              <GoalsView
+                selectedDate={selectedDate}
+                tasks={tasks}
+                dailyLog={dailyLog}
+                authFetch={authFetch}
+                theme={theme}
+                dailyTaskTarget={dailyTaskTarget}
+                dailyFocusTarget={dailyFocusTarget}
               />
             )}
 
@@ -736,6 +778,7 @@ export default function App() {
                 onScheduleTask={handleScheduleTask}
                 onDeleteTask={handleDeleteTask}
                 theme={theme}
+                timeFormat={timeFormat}
               />
             )}
 
@@ -753,6 +796,12 @@ export default function App() {
               <SettingsView
                 theme={theme}
                 onToggleTheme={handleToggleTheme}
+                timeFormat={timeFormat}
+                onToggleTimeFormat={handleToggleTimeFormat}
+                dailyTaskTarget={dailyTaskTarget}
+                onUpdateDailyTaskTarget={handleUpdateDailyTaskTarget}
+                dailyFocusTarget={dailyFocusTarget}
+                onUpdateDailyFocusTarget={handleUpdateDailyFocusTarget}
                 notificationsEnabled={notificationsEnabled}
                 onToggleNotifications={handleEnableNotifications}
                 currentUser={currentUser}

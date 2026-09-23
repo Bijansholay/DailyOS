@@ -5,6 +5,8 @@ import {
   Inbox, Layers, AlertTriangle, Filter, CalendarDays
 } from 'lucide-react';
 import { PrimaryButton, SecondaryButton, IconButton, ActionPillButton } from './Button';
+import { formatTime, formatTimeRange } from '../utils/timeFormat';
+import SwipeableTaskCard from './SwipeableTaskCard';
 
 function getTaskDateMeta(scheduledFor) {
   const todayStr = new Date().toISOString().split('T')[0];
@@ -90,7 +92,8 @@ export default function UndoneTasksView({
   onStatusChange, 
   onScheduleTask, 
   onDeleteTask,
-  theme
+  theme,
+  timeFormat = '12h'
 }) {
   const [filterDateGroup, setFilterDateGroup] = useState('all'); // all | overdue | today | upcoming | backlog
   const [filterCategory, setFilterCategory] = useState('all');
@@ -369,103 +372,110 @@ export default function UndoneTasksView({
             const badgeStyle = theme === 'light' ? meta.badgeStyleLight : meta.badgeStyleDark;
 
             return (
-              <div 
+              <SwipeableTaskCard
                 key={task.id}
-                className={`p-4 md:p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group ${
-                  theme === 'light' 
-                    ? 'bg-white border-slate-200 hover:shadow-md hover:border-slate-300' 
-                    : 'bg-[#1C1924] border-[#2D273C] hover:bg-[#231F2E] hover:border-[#3B334D]'
-                }`}
+                onSwipeRight={() => onStatusChange(task, 'done')}
+                onSwipeLeft={() => onScheduleTask(task.id, todayStr)}
+                swipeLeftLabel="Do Today"
               >
-                <div className="flex items-start gap-4 min-w-0 flex-1">
-                  {/* Mark Complete Checkbox */}
-                  <button
-                    onClick={() => onStatusChange(task, 'done')}
-                    title="Action: Mark as done and record actual duration"
-                    className={`mt-0.5 transition-colors shrink-0 ${
-                      theme === 'light' ? 'text-slate-400 hover:text-emerald-600' : 'text-slate-500 hover:text-purple-400'
-                    }`}
-                  >
-                    <Circle className="w-5 h-5" />
-                  </button>
+                <div 
+                  className={`p-4 md:p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group ${
+                    theme === 'light' 
+                      ? 'bg-white border-slate-200 hover:shadow-md hover:border-slate-300' 
+                      : 'bg-[#1C1924] border-[#2D273C] hover:bg-[#231F2E] hover:border-[#3B334D]'
+                  }`}
+                >
+                  <div className="flex items-start gap-4 min-w-0 flex-1">
+                    {/* Mark Complete Checkbox */}
+                    <button
+                      onClick={() => onStatusChange(task, 'done')}
+                      title="Action: Mark as done and record actual duration"
+                      className={`mt-0.5 transition-colors shrink-0 ${
+                        theme === 'light' ? 'text-slate-400 hover:text-emerald-600' : 'text-slate-500 hover:text-purple-400'
+                      }`}
+                    >
+                      <Circle className="w-5 h-5" />
+                    </button>
 
-                  <div className="space-y-2 min-w-0 flex-1">
-                    {/* ATTACHED DATE & CATEGORY BADGES */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {/* PROMINENT ATTACHED DATE BADGE */}
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${badgeStyle}`}>
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>{meta.label}</span>
-                      </span>
-
-                      {/* CATEGORY BADGE */}
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
-                        theme === 'light'
-                          ? 'bg-slate-100 text-slate-600 border-slate-200'
-                          : 'bg-[#121114] text-slate-400 border-[#2D273C]'
-                      }`}>
-                        {task.category || 'general'}
-                      </span>
-
-                      {/* PRIORITY BADGE */}
-                      {isHighPriority && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-500 border border-rose-500/20">
-                          High Priority
+                    <div className="space-y-2 min-w-0 flex-1">
+                      {/* ATTACHED DATE & CATEGORY BADGES */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* PROMINENT ATTACHED DATE BADGE */}
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${badgeStyle}`}>
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>{meta.label}</span>
                         </span>
-                      )}
-                    </div>
 
-                    {/* TASK TITLE */}
-                    <h4 className={`leading-snug ${
-                      theme === 'light'
-                        ? isHighPriority ? 'font-bold text-base text-slate-900' : 'font-semibold text-sm text-slate-800'
-                        : isHighPriority ? 'font-bold text-base text-white' : 'font-medium text-sm text-slate-100'
-                    }`}>
-                      {task.title}
-                    </h4>
+                        {/* CATEGORY BADGE */}
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                          theme === 'light'
+                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            : 'bg-[#121114] text-slate-400 border-[#2D273C]'
+                        }`}>
+                          {task.category || 'general'}
+                        </span>
 
-                    {/* DURATION METADATA */}
-                    <div className={`flex items-center gap-4 text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        {task.estimated_minutes || 30}m estimated
-                      </span>
+                        {/* PRIORITY BADGE */}
+                        {isHighPriority && (
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                            High Priority
+                          </span>
+                        )}
+                      </div>
+
+                      {/* TASK TITLE */}
+                      <h4 className={`leading-snug ${
+                        theme === 'light'
+                          ? isHighPriority ? 'font-bold text-base text-slate-900' : 'font-semibold text-sm text-slate-800'
+                          : isHighPriority ? 'font-bold text-base text-white' : 'font-medium text-sm text-slate-100'
+                      }`}>
+                        {task.title}
+                      </h4>
+
+                      {/* DURATION & SCHEDULED TIME METADATA */}
+                      <div className={`flex items-center gap-4 text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {task.scheduled_time 
+                            ? formatTimeRange(task.scheduled_time, task.estimated_minutes || 30, timeFormat)
+                            : `${task.estimated_minutes || 30}m estimated`}
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* QUICK ACTION CONTROLS */}
+                  <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[var(--border-color)]">
+                    {meta.type !== 'today' && (
+                      <ActionPillButton
+                        onClick={() => onScheduleTask(task.id, todayStr)}
+                        icon={Calendar}
+                        active
+                        title="Schedule for Today"
+                      >
+                        Do Today
+                      </ActionPillButton>
+                    )}
+
+                    <IconButton
+                      onClick={() => onStatusChange(task, 'skipped')}
+                      icon={XSquare}
+                      title="Skip task"
+                    />
+
+                    <IconButton
+                      onClick={() => onDeleteTask(task.id)}
+                      icon={Trash2}
+                      danger
+                      title="Delete task"
+                    />
+                  </div>
                 </div>
-
-                {/* QUICK ACTION CONTROLS */}
-                <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[var(--border-color)]">
-                  {meta.type !== 'today' && (
-                    <ActionPillButton
-                      onClick={() => onScheduleTask(task.id, todayStr)}
-                      icon={Calendar}
-                      active
-                      title="Schedule for Today"
-                    >
-                      Do Today
-                    </ActionPillButton>
-                  )}
-
-                  <IconButton
-                    onClick={() => onStatusChange(task, 'skipped')}
-                    icon={XSquare}
-                    title="Skip task"
-                  />
-
-                  <IconButton
-                    onClick={() => onDeleteTask(task.id)}
-                    icon={Trash2}
-                    danger
-                    title="Delete task"
-                  />
-                </div>
-              </div>
+              </SwipeableTaskCard>
             );
           })}
         </div>
       )}
     </div>
   );
-}
 
