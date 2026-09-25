@@ -1,7 +1,7 @@
 import React from 'react';
 import { SignIn, SignUp } from '@clerk/clerk-react';
 import { X, KeyRound, AlertTriangle, ArrowRight } from 'lucide-react';
-import { IconButton, Button } from './Button';
+import { IconButton, PrimaryButton } from './Button';
 
 const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const isClerkKeyConfigured = Boolean(CLERK_KEY && CLERK_KEY !== 'pk_test_sample');
@@ -33,8 +33,7 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
               <p>2. Run <span className="text-amber-300">npm run build</span> &amp; restart</p>
             </div>
             {onTryDemo && (
-              <Button
-                variant="primary"
+              <PrimaryButton
                 onClick={() => {
                   onClose();
                   onTryDemo();
@@ -43,9 +42,10 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
               >
                 <span>Continue in Interactive Demo Mode</span>
                 <ArrowRight className="w-4 h-4" />
-              </Button>
+              </PrimaryButton>
             )}
           </div>
+
         ) : (
           <div className="w-full pt-4 flex justify-center">
             {initialRegister ? (

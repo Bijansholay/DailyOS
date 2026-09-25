@@ -99,3 +99,6 @@ export function ActionPillButton({
     </button>
   );
 }
+
+export { PrimaryButton as Button };
+
