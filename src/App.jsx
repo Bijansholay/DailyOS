@@ -457,6 +457,29 @@ export default function App() {
 
   const isTodaySelected = selectedDate === new Date().toISOString().split('T')[0];
 
+  const handleTryDemo = async () => {
+    try {
+      const res = await fetch('/api/auth/demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('dailyos_token', data.token);
+        localStorage.setItem('dailyos_user', JSON.stringify(data.user));
+        setCurrentUser(data.user);
+        setAuthToken(data.token);
+        showToast('Entered Interactive Demo Mode');
+      } else {
+        const errData = await res.json();
+        showToast(errData.error || 'Failed to enter demo mode');
+      }
+    } catch (err) {
+      console.error('Error entering demo mode:', err);
+      showToast('Error entering demo mode');
+    }
+  };
+
   // If user is NOT signed in, show the Public Landing Page!
   if (!currentUser) {
     return (
@@ -466,34 +489,14 @@ export default function App() {
             setAuthModalRegister(isReg);
             setShowAuthModal(true);
           }}
-          onTryDemo={async () => {
-            try {
-              const res = await fetch('/api/auth/demo', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-              });
-              if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem('dailyos_token', data.token);
-                localStorage.setItem('dailyos_user', JSON.stringify(data.user));
-                setCurrentUser(data.user);
-                setAuthToken(data.token);
-                showToast('Entered Interactive Demo Mode');
-              } else {
-                const errData = await res.json();
-                showToast(errData.error || 'Failed to enter demo mode');
-              }
-            } catch (err) {
-              console.error('Error entering demo mode:', err);
-              showToast('Error entering demo mode');
-            }
-          }}
+          onTryDemo={handleTryDemo}
         />
         <AuthModal
           isOpen={showAuthModal}
           initialRegister={authModalRegister}
           onClose={() => setShowAuthModal(false)}
           onAuthSuccess={handleAuthSuccess}
+          onTryDemo={handleTryDemo}
         />
       </>
     );
