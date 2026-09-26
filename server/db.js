@@ -192,13 +192,23 @@ export const dbEngine = {
   defaultUserId: DEFAULT_USER_ID,
 
   async ensureDefaultUser() {
-    const { data } = await supabase.from('users').select('*').eq('id', DEFAULT_USER_ID).maybeSingle();
-    if (!data) {
-      await supabase.from('users').insert({
-        id: DEFAULT_USER_ID,
-        email: 'user@dailyos.local',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
-      });
+    await this.ensureUserExists(DEFAULT_USER_ID, 'user@dailyos.local');
+  },
+
+  async ensureUserExists(userId, email = null) {
+    if (!userId) return;
+    try {
+      const { data } = await supabase.from('users').select('id').eq('id', userId).maybeSingle();
+      if (!data) {
+        const newUser = {
+          id: userId,
+          email: (email || `${userId}@dailyos.local`).toLowerCase().trim(),
+          created_at: new Date().toISOString()
+        };
+        await supabase.from('users').insert(newUser).maybeSingle();
+      }
+    } catch (e) {
+      // Ignore user creation conflict
     }
   },
 
@@ -207,12 +217,19 @@ export const dbEngine = {
     const newUser = {
       id: userId,
       email: (email || '').toLowerCase().trim(),
-      password_hash: password_hash || null,
       created_at: new Date().toISOString()
     };
+    if (password_hash) newUser.password_hash = password_hash;
 
     const { data, error } = await supabase.from('users').insert(newUser).select().maybeSingle();
     if (error && !error.message?.includes('already exists')) {
+      // If error is password_hash column missing on remote Supabase table, retry without password_hash field
+      if (error.message?.includes('password_hash')) {
+        delete newUser.password_hash;
+        const retry = await supabase.from('users').insert(newUser).select().maybeSingle();
+        return retry.data || newUser;
+      }
+      console.error('❌ Supabase createUser Error:', error.message || error);
       throw error;
     }
     return data || newUser;
@@ -220,28 +237,20 @@ export const dbEngine = {
 
   async syncClerkUser({ id, email }) {
     if (!id) return null;
-    const cleanEmail = (email || '').toLowerCase().trim();
-    const existing = await this.findUserById(id);
-    if (existing) return existing;
-
-    const newUser = {
-      id,
-      email: cleanEmail || `${id}@clerk.local`,
-      created_at: new Date().toISOString()
-    };
-    const { data } = await supabase.from('users').insert(newUser).select().maybeSingle();
-    return data || newUser;
+    return await this.ensureUserExists(id, email);
   },
 
   async findUserByEmail(email) {
     if (!email) return null;
-    const { data } = await supabase.from('users').select('*').eq('email', email.toLowerCase().trim()).maybeSingle();
+    const { data, error } = await supabase.from('users').select('*').eq('email', email.toLowerCase().trim()).maybeSingle();
+    if (error) console.error('❌ Supabase findUserByEmail Error:', error.message || error);
     return data;
   },
 
   async findUserById(id) {
     if (!id) return null;
-    const { data } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
+    const { data, error } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
+    if (error) console.error('❌ Supabase findUserById Error:', error.message || error);
     return data;
   },
 
@@ -256,15 +265,21 @@ export const dbEngine = {
       query = query.eq('scheduled_for', date);
     }
     const { data, error } = await query.order('created_at', { ascending: false });
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase getTasks Error:', error.message || error);
+      throw error;
+    }
     return data || [];
   },
 
   async createTask(taskData) {
+    const userId = taskData.user_id || DEFAULT_USER_ID;
+    await this.ensureUserExists(userId);
+
     const id = generateUuid();
     const newTask = {
       id,
-      user_id: taskData.user_id || DEFAULT_USER_ID,
+      user_id: userId,
       title: taskData.title,
       category: taskData.category || 'personal',
       estimated_minutes: Number(taskData.estimated_minutes) || 30,
@@ -277,9 +292,12 @@ export const dbEngine = {
       completed_at: taskData.completed_at || null
     };
 
-    const { data, error } = await supabase.from('tasks').insert(newTask).select().single();
-    if (error) throw error;
-    return data;
+    const { data, error } = await supabase.from('tasks').insert(newTask).select().maybeSingle();
+    if (error) {
+      console.error('❌ Supabase createTask Error:', error.message || error);
+      throw error;
+    }
+    return data || newTask;
   },
 
   async updateTask(id, updates, userId) {
@@ -291,15 +309,21 @@ export const dbEngine = {
     let query = supabase.from('tasks').update(fieldsToUpdate).eq('id', id);
     if (userId) query = query.eq('user_id', userId);
     const { data, error } = await query.select().maybeSingle();
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase updateTask Error:', error.message || error);
+      throw error;
+    }
     return data;
   },
 
   async deleteTask(id, userId) {
     let query = supabase.from('tasks').delete().eq('id', id);
     if (userId) query = query.eq('user_id', userId);
-    const { data, error } = await query;
-    if (error) throw error;
+    const { data, error } = await query.select();
+    if (error) {
+      console.error('❌ Supabase deleteTask Error:', error.message || error);
+      throw error;
+    }
     if (!data || data.length === 0) return null;
     return { success: true, id };
   },
@@ -310,15 +334,21 @@ export const dbEngine = {
     if (from) query = query.gte('event_date', from);
     if (to) query = query.lte('event_date', to);
     const { data, error } = await query.order('event_date', { ascending: true });
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase getEvents Error:', error.message || error);
+      throw error;
+    }
     return data || [];
   },
 
   async createEvent(eventData) {
+    const userId = eventData.user_id || DEFAULT_USER_ID;
+    await this.ensureUserExists(userId);
+
     const id = generateUuid();
     const newEvent = {
       id,
-      user_id: eventData.user_id || DEFAULT_USER_ID,
+      user_id: userId,
       title: eventData.title,
       event_date: eventData.event_date,
       event_time: eventData.event_time || null,
@@ -327,43 +357,56 @@ export const dbEngine = {
       created_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase.from('events').insert(newEvent).select().single();
-    if (error) throw error;
-    return data;
+    const { data, error } = await supabase.from('events').insert(newEvent).select().maybeSingle();
+    if (error) {
+      console.error('❌ Supabase createEvent Error:', error.message || error);
+      throw error;
+    }
+    return data || newEvent;
   },
 
   async deleteEvent(id, userId) {
     let query = supabase.from('events').delete().eq('id', id);
     if (userId) query = query.eq('user_id', userId);
-    const { data, error } = await query;
-    if (error) throw error;
+    const { data, error } = await query.select();
+    if (error) {
+      console.error('❌ Supabase deleteEvent Error:', error.message || error);
+      throw error;
+    }
     if (!data || data.length === 0) return null;
     return { success: true, id };
   },
 
   // DAILY LOGS
   async getDailyLog(userId, logDate) {
-    const { data } = await supabase.from('daily_logs').select('*').eq('user_id', userId).eq('log_date', logDate).maybeSingle();
+    const { data, error } = await supabase.from('daily_logs').select('*').eq('user_id', userId).eq('log_date', logDate).maybeSingle();
+    if (error) console.error('❌ Supabase getDailyLog Error:', error.message || error);
     return data;
   },
 
   async upsertDailyLog(userId, logDate, logData) {
+    await this.ensureUserExists(userId);
     const { data, error } = await supabase
       .from('daily_logs')
       .upsert({ user_id: userId, log_date: logDate, ...logData }, { onConflict: 'user_id,log_date' })
       .select()
-      .single();
-    if (error) throw error;
+      .maybeSingle();
+    if (error) {
+      console.error('❌ Supabase upsertDailyLog Error:', error.message || error);
+      throw error;
+    }
     return data;
   },
 
   // PATTERNS
   async getLatestPattern(userId = DEFAULT_USER_ID) {
-    const { data } = await supabase.from('patterns').select('*').eq('user_id', userId).order('computed_at', { ascending: false }).limit(1).maybeSingle();
+    const { data, error } = await supabase.from('patterns').select('*').eq('user_id', userId).order('computed_at', { ascending: false }).limit(1).maybeSingle();
+    if (error) console.error('❌ Supabase getLatestPattern Error:', error.message || error);
     return data;
   },
 
   async upsertPattern(userId = DEFAULT_USER_ID, patternData) {
+    await this.ensureUserExists(userId);
     const id = generateUuid();
     const computedAt = new Date().toISOString();
     const payload = {
@@ -377,9 +420,12 @@ export const dbEngine = {
       created_at: computedAt
     };
 
-    const { data, error } = await supabase.from('patterns').insert(payload).select().single();
-    if (error) throw error;
-    return data;
+    const { data, error } = await supabase.from('patterns').insert(payload).select().maybeSingle();
+    if (error) {
+      console.error('❌ Supabase upsertPattern Error:', error.message || error);
+      throw error;
+    }
+    return data || payload;
   },
 
   async getTasksForPatternComputation(userId = DEFAULT_USER_ID, daysBack = 30) {
@@ -388,7 +434,10 @@ export const dbEngine = {
     const dateStr = startDate.toISOString().split('T')[0];
 
     const { data, error } = await supabase.from('tasks').select('*').eq('user_id', userId).gte('scheduled_for', dateStr);
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase getTasksForPatternComputation Error:', error.message || error);
+      throw error;
+    }
     return data || [];
   },
 
@@ -398,15 +447,21 @@ export const dbEngine = {
     if (periodType) query = query.eq('period_type', periodType);
     if (periodKey) query = query.eq('period_key', periodKey);
     const { data, error } = await query.order('created_at', { ascending: false });
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase getGoals Error:', error.message || error);
+      throw error;
+    }
     return data || [];
   },
 
   async createGoal(goalData) {
+    const userId = goalData.user_id || DEFAULT_USER_ID;
+    await this.ensureUserExists(userId);
+
     const id = generateUuid();
     const newGoal = {
       id,
-      user_id: goalData.user_id || DEFAULT_USER_ID,
+      user_id: userId,
       title: goalData.title,
       period_type: goalData.period_type || 'daily',
       period_key: goalData.period_key,
@@ -418,9 +473,12 @@ export const dbEngine = {
       completed_at: goalData.completed_at || null
     };
 
-    const { data, error } = await supabase.from('goals').insert(newGoal).select().single();
-    if (error) throw error;
-    return data;
+    const { data, error } = await supabase.from('goals').insert(newGoal).select().maybeSingle();
+    if (error) {
+      console.error('❌ Supabase createGoal Error:', error.message || error);
+      throw error;
+    }
+    return data || newGoal;
   },
 
   async updateGoal(id, updates, userId) {
@@ -432,7 +490,10 @@ export const dbEngine = {
     let query = supabase.from('goals').update(fieldsToUpdate).eq('id', id);
     if (userId) query = query.eq('user_id', userId);
     const { data, error } = await query.select().maybeSingle();
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase updateGoal Error:', error.message || error);
+      throw error;
+    }
     return data;
   },
 
@@ -440,7 +501,10 @@ export const dbEngine = {
     let query = supabase.from('goals').delete().eq('id', id);
     if (userId) query = query.eq('user_id', userId);
     const { data, error } = await query.select();
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase deleteGoal Error:', error.message || error);
+      throw error;
+    }
     if (!data || data.length === 0) return null;
     return { success: true, id };
   }

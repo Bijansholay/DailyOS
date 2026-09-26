@@ -1,12 +1,16 @@
 -- DailyOS Supabase PostgreSQL Database Schema Setup
 
--- 1. USERS TABLE (Primary key mapped to Clerk User ID string e.g. user_2p...)
+-- 1. USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
+  password_hash TEXT,
   timezone TEXT DEFAULT 'UTC',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Ensure password_hash column exists on existing installations
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
 
 -- Default system user initialization
 INSERT INTO users (id, email, timezone)
