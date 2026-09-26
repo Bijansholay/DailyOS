@@ -1,25 +1,43 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { dbEngine } from './db.js';
+import { hashPassword, verifyPassword, createToken, verifyToken } from './utils/authUtils.js';
 
 test.before(async () => {
   await dbEngine.ensureDefaultUser();
 });
 
-test('Auth: Sync Clerk User and Find User', async () => {
-  const userId = `user_${Date.now()}`;
-  const email = `clerkuser_${Date.now()}@example.com`;
+test('Auth: Standard Password Hashing, JWT Token Creation & User Lookup', async () => {
+  const timestamp = Date.now();
+  const email = `testuser_${timestamp}@example.com`;
+  const rawPassword = 'SecurePassword123';
+  const passwordHash = hashPassword(rawPassword);
 
-  // Sync Clerk User
-  const newUser = await dbEngine.syncClerkUser({ id: userId, email });
-  assert.ok(newUser.id, 'Synced user must have an ID');
-  assert.equal(newUser.id, userId);
+  // Verify password hash
+  assert.ok(verifyPassword(rawPassword, passwordHash), 'Password verification must succeed');
+  assert.ok(!verifyPassword('WrongPassword', passwordHash), 'Wrong password must fail');
+
+  // Create User
+  const newUser = await dbEngine.createUser({
+    email,
+    password_hash: passwordHash
+  });
+  assert.ok(newUser.id, 'Created user must have an ID');
   assert.equal(newUser.email, email.toLowerCase());
 
-  // Find User
+  // Verify JWT Token Creation & Verification
+  const token = createToken({ userId: newUser.id, email: newUser.email });
+  assert.ok(token, 'Token must be generated');
+
+  const decoded = verifyToken(token);
+  assert.ok(decoded, 'Token signature verification must succeed');
+  assert.equal(decoded.userId, newUser.id);
+  assert.equal(decoded.email, newUser.email);
+
+  // Find User by email
   const foundUser = await dbEngine.findUserByEmail(email);
   assert.ok(foundUser, 'Should find user by email');
-  assert.equal(foundUser.id, userId);
+  assert.equal(foundUser.id, newUser.id);
 });
 
 test('Task CRUD Operations', async () => {
@@ -199,7 +217,7 @@ test('Security IDOR Regression: User B cannot PATCH or DELETE User A goal', asyn
     const authRouter = (await import('./routes/auth.js')).default;
 
     if (express && authRouter && tasksRouter && eventsRouter && goalsRouter) {
-      test('HTTP API Endpoints (Clerk Integration & IDOR Regression)', async () => {
+      test('HTTP API Endpoints (Standard Auth & IDOR Regression)', async () => {
         const app = express();
         app.use(express.json());
         app.use('/api/auth', authRouter);
@@ -218,29 +236,30 @@ test('Security IDOR Regression: User B cannot PATCH or DELETE User A goal', asyn
           const port = server.address().port;
           const baseUrl = `http://127.0.0.1:${port}`;
 
-          // User A & User B simulated Clerk IDs
-          const userAId = `user_clerk_a_${Date.now()}`;
-          const userBId = `user_clerk_b_${Date.now()}`;
-
-          // Sync User A & User B
-          const syncResA = await fetch(`${baseUrl}/api/auth/sync`, {
+          // Register User A
+          const regResA = await fetch(`${baseUrl}/api/auth/register`, {
             method: 'POST',
-            headers: { Authorization: `Bearer ${userAId}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: `usera_${Date.now()}@example.com` })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: `httpera_${Date.now()}@example.com`, password: 'Password123' })
           });
-          assert.equal(syncResA.status, 200);
+          assert.equal(regResA.status, 201);
+          const userAData = await regResA.json();
+          assert.ok(userAData.token);
 
-          const syncResB = await fetch(`${baseUrl}/api/auth/sync`, {
+          // Register User B
+          const regResB = await fetch(`${baseUrl}/api/auth/register`, {
             method: 'POST',
-            headers: { Authorization: `Bearer ${userBId}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: `userb_${Date.now()}@example.com` })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: `httperb_${Date.now()}@example.com`, password: 'Password123' })
           });
-          assert.equal(syncResB.status, 200);
+          assert.equal(regResB.status, 201);
+          const userBData = await regResB.json();
+          assert.ok(userBData.token);
 
           // User A creates task via HTTP
           const taskRes = await fetch(`${baseUrl}/api/tasks`, {
             method: 'POST',
-            headers: { Authorization: `Bearer ${userAId}`, 'Content-Type': 'application/json' },
+            headers: { Authorization: `Bearer ${userAData.token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ title: 'HTTP Task A' })
           });
           assert.equal(taskRes.status, 201);
@@ -249,7 +268,7 @@ test('Security IDOR Regression: User B cannot PATCH or DELETE User A goal', asyn
           // User B attempts to PATCH User A's task -> 404
           const patchRes = await fetch(`${baseUrl}/api/tasks/${taskA.id}`, {
             method: 'PATCH',
-            headers: { Authorization: `Bearer ${userBId}`, 'Content-Type': 'application/json' },
+            headers: { Authorization: `Bearer ${userBData.token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ title: 'Hacked' })
           });
           assert.equal(patchRes.status, 404);
@@ -257,14 +276,14 @@ test('Security IDOR Regression: User B cannot PATCH or DELETE User A goal', asyn
           // User B attempts to DELETE User A's task -> 404
           const delRes = await fetch(`${baseUrl}/api/tasks/${taskA.id}`, {
             method: 'DELETE',
-            headers: { Authorization: `Bearer ${userBId}` }
+            headers: { Authorization: `Bearer ${userBData.token}` }
           });
           assert.equal(delRes.status, 404);
 
           // User A creates goal via HTTP
           const goalRes = await fetch(`${baseUrl}/api/goals`, {
             method: 'POST',
-            headers: { Authorization: `Bearer ${userAId}`, 'Content-Type': 'application/json' },
+            headers: { Authorization: `Bearer ${userAData.token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ title: 'Read 2 Books', period_type: 'monthly', period_key: '2026-09', target_value: 2 })
           });
           assert.equal(goalRes.status, 201);
@@ -273,7 +292,7 @@ test('Security IDOR Regression: User B cannot PATCH or DELETE User A goal', asyn
           // User B attempts to PATCH User A's goal -> 404
           const goalPatchRes = await fetch(`${baseUrl}/api/goals/${goalA.id}`, {
             method: 'PATCH',
-            headers: { Authorization: `Bearer ${userBId}`, 'Content-Type': 'application/json' },
+            headers: { Authorization: `Bearer ${userBData.token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ progress_value: 1 })
           });
           assert.equal(goalPatchRes.status, 404);
@@ -281,7 +300,7 @@ test('Security IDOR Regression: User B cannot PATCH or DELETE User A goal', asyn
           // User B attempts to DELETE User A's goal -> 404
           const goalDelRes = await fetch(`${baseUrl}/api/goals/${goalA.id}`, {
             method: 'DELETE',
-            headers: { Authorization: `Bearer ${userBId}` }
+            headers: { Authorization: `Bearer ${userBData.token}` }
           });
           assert.equal(goalDelRes.status, 404);
 

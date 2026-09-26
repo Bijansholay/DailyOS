@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
 import { 
   LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
   ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock, Bell, ListTodo, Settings, Sun, Moon, Target
@@ -74,10 +73,6 @@ export default function App() {
     localStorage.setItem('dailyos_focus_target', targetVal);
   };
 
-  // Clerk Authentication Hooks
-  const { isLoaded: isClerkLoaded, userId: clerkUserId, getToken, signOut: clerkSignOut, isSignedIn: isClerkSignedIn } = useAuth();
-  const { user: clerkUser } = useUser();
-
   // Auth State
   const [currentUser, setCurrentUser] = useState(() => {
     try {
@@ -90,36 +85,6 @@ export default function App() {
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('dailyos_token'));
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalRegister, setAuthModalRegister] = useState(false);
-
-  // Sync Clerk User on sign in
-  useEffect(() => {
-    if (isClerkSignedIn && clerkUserId && clerkUser) {
-      const email = clerkUser.primaryEmailAddress?.emailAddress || clerkUser.emailAddresses?.[0]?.emailAddress || '';
-      const syncedUser = { id: clerkUserId, email };
-      setCurrentUser(syncedUser);
-      localStorage.setItem('dailyos_user', JSON.stringify(syncedUser));
-
-      (async () => {
-        try {
-          const token = await getToken();
-          if (token) {
-            localStorage.setItem('dailyos_token', token);
-            setAuthToken(token);
-          }
-          await fetch('/api/auth/sync', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token || clerkUserId}`
-            },
-            body: JSON.stringify({ email })
-          });
-        } catch (e) {
-          console.warn('Clerk user sync notice:', e);
-        }
-      })();
-    }
-  }, [isClerkSignedIn, clerkUserId, clerkUser]);
 
   // Data states
   const [tasks, setTasks] = useState([]);
@@ -143,17 +108,7 @@ export default function App() {
 
   // Helper fetch with Bearer token authentication header & 401 interceptor
   const authFetch = async (url, options = {}) => {
-    let token = null;
-    if (isClerkSignedIn && getToken) {
-      try {
-        token = await getToken();
-      } catch (e) {
-        token = clerkUserId;
-      }
-    }
-    if (!token) {
-      token = authToken || localStorage.getItem('dailyos_token') || (currentUser ? currentUser.id : null);
-    }
+    const token = authToken || localStorage.getItem('dailyos_token') || (currentUser ? currentUser.id : null);
 
     const headers = {
       'Content-Type': 'application/json',
@@ -165,7 +120,7 @@ export default function App() {
     
     try {
       const res = await fetch(url, { ...options, headers });
-      if (res.status === 401 && !isClerkSignedIn) {
+      if (res.status === 401) {
         localStorage.removeItem('dailyos_token');
         localStorage.removeItem('dailyos_user');
         setCurrentUser(null);
@@ -185,9 +140,6 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    if (isClerkSignedIn && clerkSignOut) {
-      await clerkSignOut();
-    }
     localStorage.removeItem('dailyos_token');
     localStorage.removeItem('dailyos_user');
     setCurrentUser(null);

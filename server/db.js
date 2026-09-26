@@ -202,11 +202,12 @@ export const dbEngine = {
     }
   },
 
-  async createUser({ id, email }) {
+  async createUser({ id, email, password_hash }) {
     const userId = id || `user_${Date.now()}`;
     const newUser = {
       id: userId,
       email: (email || '').toLowerCase().trim(),
+      password_hash: password_hash || null,
       created_at: new Date().toISOString()
     };
 

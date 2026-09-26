@@ -1,26 +1,93 @@
 import { dbEngine } from '../db.js';
+import { 
+  hashPassword, 
+  verifyPassword, 
+  createToken, 
+  validateEmailFormat, 
+  validatePasswordStrength 
+} from '../utils/authUtils.js';
 import { authMiddleware } from '../middleware/auth.js';
 
-let router = null;
-
+let expressModule;
 try {
-  const expressModule = await import('express');
-  const express = expressModule.default;
-  router = express.Router();
+  expressModule = await import('express');
+} catch (e) {
+  expressModule = null;
+}
 
-  // POST /api/auth/sync — Sync a Clerk user into Supabase users table on frontend sign-in
-  router.post('/sync', authMiddleware, async (req, res) => {
+const router = expressModule ? expressModule.default.Router() : null;
+
+if (router) {
+  // POST /api/auth/register
+  router.post('/register', async (req, res) => {
     try {
-      const { email } = req.body;
-      const userId = req.userId;
+      const { email, password } = req.body;
 
-      if (!userId) {
-        return res.status(400).json({ error: 'User ID missing from authentication context' });
+      if (!validateEmailFormat(email)) {
+        return res.status(400).json({ error: 'Please enter a valid email address.' });
       }
 
-      const user = await dbEngine.syncClerkUser({ id: userId, email });
+      const passValidation = validatePasswordStrength(password);
+      if (!passValidation.valid) {
+        return res.status(400).json({ error: passValidation.message });
+      }
+
+      const cleanEmail = email.toLowerCase().trim();
+      const existingUser = await dbEngine.findUserByEmail(cleanEmail);
+
+      if (existingUser) {
+        return res.status(400).json({ error: 'An account with this email already exists. Please sign in.' });
+      }
+
+      const password_hash = hashPassword(password);
+      const newUser = await dbEngine.createUser({
+        email: cleanEmail,
+        password_hash
+      });
+
+      const token = createToken({ userId: newUser.id, email: newUser.email });
+
+      res.status(201).json({
+        message: 'Account created successfully!',
+        token,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          created_at: newUser.created_at
+        }
+      });
+    } catch (err) {
+      console.error('Error during registration:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/auth/login
+  router.post('/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Please provide both email and password.' });
+      }
+
+      const cleanEmail = String(email).toLowerCase().trim();
+      const user = await dbEngine.findUserByEmail(cleanEmail);
+
+      if (!user || !user.password_hash) {
+        return res.status(401).json({ error: 'Invalid email or password.' });
+      }
+
+      const isMatch = verifyPassword(password, user.password_hash);
+      if (!isMatch) {
+        return res.status(401).json({ error: 'Invalid email or password.' });
+      }
+
+      const token = createToken({ userId: user.id, email: user.email });
+
       res.json({
-        success: true,
+        message: 'Signed in successfully!',
+        token,
         user: {
           id: user.id,
           email: user.email,
@@ -28,62 +95,22 @@ try {
         }
       });
     } catch (err) {
-      console.error('Error syncing Clerk user:', err);
+      console.error('Error during login:', err);
       res.status(500).json({ error: err.message });
     }
   });
 
-  // POST /api/auth/webhook — Standard Clerk user.created webhook handler
-  router.post('/webhook', async (req, res) => {
-    try {
-      const evt = req.body;
-      const eventType = evt?.type;
-
-      if (eventType === 'user.created' || eventType === 'user.updated') {
-        const data = evt.data;
-        const userId = data.id;
-        const primaryEmailObj = data.email_addresses?.find(e => e.id === data.primary_email_address_id);
-        const email = primaryEmailObj ? primaryEmailObj.email_address : (data.email_addresses?.[0]?.email_address || '');
-
-        if (userId) {
-          await dbEngine.syncClerkUser({ id: userId, email });
-          console.log(`👤 [CLERK WEBHOOK] Synced user ${userId} (${email})`);
-        }
-      }
-
-      res.json({ received: true });
-    } catch (err) {
-      console.error('Error processing Clerk webhook:', err);
-      res.status(500).json({ error: err.message });
-    }
-  });
-
-  // GET /api/auth/me — Return current user info
-  router.get('/me', authMiddleware, async (req, res) => {
-    try {
-      let user = await dbEngine.findUserById(req.userId);
-      if (!user) {
-        user = await dbEngine.syncClerkUser({ id: req.userId, email: '' });
-      }
-      res.json({
-        id: user.id,
-        email: user.email,
-        created_at: user.created_at
-      });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  });
-
-  // POST /api/auth/demo — Guest demo access
+  // POST /api/auth/demo
   router.post('/demo', async (req, res) => {
     try {
-      const demoId = 'user_000000000000000000000000001';
       const email = 'demo@dailyos.local';
+      let demoUser = await dbEngine.findUserByEmail(email);
 
-      let demoUser = await dbEngine.findUserById(demoId);
       if (!demoUser) {
-        demoUser = await dbEngine.createUser({ id: demoId, email });
+        demoUser = await dbEngine.createUser({
+          email,
+          password_hash: hashPassword('demo-password-123')
+        });
       }
 
       // Seed sample tasks if demo account has no tasks
@@ -111,8 +138,10 @@ try {
         }
       }
 
+      const token = createToken({ userId: demoUser.id, email: demoUser.email });
+
       res.json({
-        token: demoUser.id,
+        token,
         user: {
           id: demoUser.id,
           email: demoUser.email,
@@ -124,8 +153,23 @@ try {
       res.status(500).json({ error: err.message });
     }
   });
-} catch (e) {
-  console.warn('Express module not available for auth router');
+
+  // GET /api/auth/me
+  router.get('/me', authMiddleware, async (req, res) => {
+    try {
+      const user = await dbEngine.findUserById(req.userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.json({
+        id: user.id,
+        email: user.email,
+        created_at: user.created_at
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 }
 
 export default router;
