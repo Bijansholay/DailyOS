@@ -1,5 +1,30 @@
 -- DailyOS Supabase PostgreSQL Database Schema Setup
 
+-- Optional: Uncomment line below if you want a complete clean reset of all tables:
+-- DROP TABLE IF EXISTS goals, patterns, daily_logs, events, tasks, users CASCADE;
+
+-- 0. MIGRATION: Convert users.id and user_id foreign keys from UUID to TEXT if needed
+DO $$ 
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'users' AND column_name = 'id' AND data_type = 'uuid'
+  ) THEN
+    ALTER TABLE IF EXISTS tasks DROP CONSTRAINT IF EXISTS tasks_user_id_fkey;
+    ALTER TABLE IF EXISTS events DROP CONSTRAINT IF EXISTS events_user_id_fkey;
+    ALTER TABLE IF EXISTS daily_logs DROP CONSTRAINT IF EXISTS daily_logs_user_id_fkey;
+    ALTER TABLE IF EXISTS patterns DROP CONSTRAINT IF EXISTS patterns_user_id_fkey;
+    ALTER TABLE IF EXISTS goals DROP CONSTRAINT IF EXISTS goals_user_id_fkey;
+
+    ALTER TABLE users ALTER COLUMN id TYPE TEXT USING id::text;
+    ALTER TABLE tasks ALTER COLUMN user_id TYPE TEXT USING user_id::text;
+    ALTER TABLE events ALTER COLUMN user_id TYPE TEXT USING user_id::text;
+    ALTER TABLE daily_logs ALTER COLUMN user_id TYPE TEXT USING user_id::text;
+    ALTER TABLE patterns ALTER COLUMN user_id TYPE TEXT USING user_id::text;
+    ALTER TABLE goals ALTER COLUMN user_id TYPE TEXT USING user_id::text;
+  END IF;
+END $$;
+
 -- 1. USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,

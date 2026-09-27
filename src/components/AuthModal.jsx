@@ -150,7 +150,7 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
           </button>
         </div>
 
-        {onTryDemo && (
+       {/*  {onTryDemo && (
           <div className="mt-3 text-center">
             <button
               type="button"
@@ -163,7 +163,7 @@ export default function AuthModal({ isOpen, initialRegister = false, onClose, on
               Or try Interactive Demo Mode without signing in
             </button>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
