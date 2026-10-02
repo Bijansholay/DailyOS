@@ -1,6 +1,6 @@
 import { dbEngine } from '../db.js';
 import { computeUserPatterns } from './patternEngine.js';
-import { generateDailyBriefing } from '../routes/ai.js';
+import { generateDailyBriefing } from '../services/aiService.js';
 
 export async function initializeCronJobs() {
   console.log('⏰ Initializing DailyOS Cron Scheduler...');

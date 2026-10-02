@@ -61,3 +61,8 @@ export const aiService = {
     };
   }
 };
+
+export async function generateDailyBriefing(userId, dateStr) {
+  return aiService.generateDailyBrief(userId, dateStr);
+}
+
