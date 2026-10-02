@@ -1,79 +1,67 @@
-import { dbEngine } from '../db.js';
+import { taskService } from '../services/taskService.js';
 import { authMiddleware } from '../middleware/auth.js';
 
-let router = null;
-
+let expressModule;
 try {
-  const expressModule = await import('express');
-  const express = expressModule.default;
-  router = express.Router();
+  expressModule = await import('express');
+} catch (e) {
+  expressModule = null;
+}
 
+const router = expressModule ? expressModule.default.Router() : null;
+
+if (router) {
   router.use(authMiddleware);
 
+  // GET /api/tasks
   router.get('/', async (req, res) => {
     try {
       const { date, backlog, undone } = req.query;
-      const tasks = await dbEngine.getTasks({
+      const tasks = await taskService.getTasks({
         userId: req.userId,
         date,
-        isBacklog: backlog === 'true',
-        isUndone: undone === 'true'
+        backlog,
+        undone
       });
       res.json(tasks);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
+  // POST /api/tasks
   router.post('/', async (req, res) => {
     try {
-      const { title, category, estimated_minutes, scheduled_for, scheduled_time, priority } = req.body;
-      if (!title || title.trim() === '') {
-        return res.status(400).json({ error: 'Task title is required' });
-      }
-      const newTask = await dbEngine.createTask({
-        user_id: req.userId,
-        title: title.trim(),
-        category: category || 'personal',
-        estimated_minutes: parseInt(estimated_minutes, 10) || 30,
-        scheduled_for: scheduled_for || null,
-        scheduled_time: scheduled_time || null,
-        priority: priority || 'medium',
-        status: 'pending'
-      });
-      res.status(201).json(newTask);
+      const task = await taskService.createTask(req.userId, req.body);
+      res.status(201).json(task);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
+  // PATCH /api/tasks/:id
   router.patch('/:id', async (req, res) => {
     try {
-      const { id } = req.params;
-      const updatedTask = await dbEngine.updateTask(id, req.body, req.userId);
-      if (!updatedTask) {
-        return res.status(404).json({ error: 'Task not found or unauthorized' });
-      }
-      res.json(updatedTask);
+      const task = await taskService.updateTask(req.params.id, req.body, req.userId);
+      res.json(task);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
+  // DELETE /api/tasks/:id
   router.delete('/:id', async (req, res) => {
     try {
-      const { id } = req.params;
-      const result = await dbEngine.deleteTask(id, req.userId);
-      if (!result) {
-        return res.status(404).json({ error: 'Task not found or unauthorized' });
-      }
-      res.json({ success: true, id });
+      const result = await taskService.deleteTask(req.params.id, req.userId);
+      res.json(result);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
-} catch (e) {
-  // Express not loaded
 }
 
 export default router;

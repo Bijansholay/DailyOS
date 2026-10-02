@@ -1,55 +1,39 @@
-import { dbEngine } from '../db.js';
+import { dailyLogService } from '../services/dailyLogService.js';
 import { authMiddleware } from '../middleware/auth.js';
 
-let router = null;
-
+let expressModule;
 try {
-  const expressModule = await import('express');
-  const express = expressModule.default;
-  router = express.Router();
+  expressModule = await import('express');
+} catch (e) {
+  expressModule = null;
+}
 
+const router = expressModule ? expressModule.default.Router() : null;
+
+if (router) {
   router.use(authMiddleware);
 
+  // GET /api/daily-log/:date
   router.get('/:date', async (req, res) => {
     try {
-      const { date } = req.params;
-      const userId = req.userId;
-      let log = await dbEngine.getDailyLog(userId, date);
-      const tasks = await dbEngine.getTasks({ userId, date });
-      const completed = tasks.filter(t => t.status === 'done').length;
-      const skipped = tasks.filter(t => t.status === 'skipped').length;
-      const late = tasks.filter(t => t.status === 'late').length;
-
-      log = await dbEngine.upsertDailyLog(userId, date, {
-        tasks_completed: completed,
-        tasks_skipped: skipped,
-        tasks_late: late,
-        mood_note: log?.mood_note,
-        ai_summary: log?.ai_summary
-      });
+      const log = await dailyLogService.getDailyLog(req.userId, req.params.date);
       res.json(log);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
+  // POST /api/daily-log/:date/reflect
   router.post('/:date/reflect', async (req, res) => {
     try {
-      const { date } = req.params;
-      const { mood_note } = req.body;
-      const userId = req.userId;
-      const tasks = await dbEngine.getTasks({ userId, date });
-      const updatedLog = await dbEngine.upsertDailyLog(userId, date, {
-        tasks_completed: tasks.filter(t => t.status === 'done').length,
-        tasks_skipped: tasks.filter(t => t.status === 'skipped').length,
-        tasks_late: tasks.filter(t => t.status === 'late').length,
-        mood_note
-      });
-      res.json(updatedLog);
+      const log = await dailyLogService.saveReflection(req.userId, req.params.date, req.body);
+      res.json(log);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
-} catch (e) {}
+}
 
 export default router;

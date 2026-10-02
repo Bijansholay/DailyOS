@@ -1,35 +1,39 @@
-import { dbEngine } from '../db.js';
-import { computeUserPatterns } from '../jobs/patternEngine.js';
+import { patternService } from '../services/patternService.js';
 import { authMiddleware } from '../middleware/auth.js';
 
-let router = null;
-
+let expressModule;
 try {
-  const expressModule = await import('express');
-  const express = expressModule.default;
-  router = express.Router();
+  expressModule = await import('express');
+} catch (e) {
+  expressModule = null;
+}
 
+const router = expressModule ? expressModule.default.Router() : null;
+
+if (router) {
   router.use(authMiddleware);
 
+  // GET /api/patterns
   router.get('/', async (req, res) => {
     try {
-      const userId = req.userId;
-      let pattern = await dbEngine.getLatestPattern(userId);
-      if (!pattern) pattern = await computeUserPatterns(userId);
+      const pattern = await patternService.getLatestPattern(req.userId);
       res.json(pattern);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
+  // POST /api/patterns/recompute
   router.post('/recompute', async (req, res) => {
     try {
-      const newPattern = await computeUserPatterns(req.userId);
-      res.json(newPattern);
+      const pattern = await patternService.recomputePattern(req.userId);
+      res.json(pattern);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
-} catch (e) {}
+}
 
 export default router;

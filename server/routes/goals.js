@@ -1,81 +1,66 @@
-import { dbEngine } from '../db.js';
+import { goalService } from '../services/goalService.js';
 import { authMiddleware } from '../middleware/auth.js';
 
-let router = null;
-
+let expressModule;
 try {
-  const expressModule = await import('express');
-  const express = expressModule.default;
-  router = express.Router();
+  expressModule = await import('express');
+} catch (e) {
+  expressModule = null;
+}
 
+const router = expressModule ? expressModule.default.Router() : null;
+
+if (router) {
   router.use(authMiddleware);
 
-  // GET /api/goals?periodType=daily|weekly|monthly&periodKey=YYYY-MM-DD
+  // GET /api/goals
   router.get('/', async (req, res) => {
     try {
-      const { periodType, periodKey } = req.query;
-      const goals = await dbEngine.getGoals({
+      const { period_type, period_key } = req.query;
+      const goals = await goalService.getGoals({
         userId: req.userId,
-        periodType,
-        periodKey
+        periodType: period_type,
+        periodKey: period_key
       });
       res.json(goals);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
   // POST /api/goals
   router.post('/', async (req, res) => {
     try {
-      const { title, period_type, period_key, target_value, current_value, category } = req.body;
-      if (!title || !title.trim()) {
-        return res.status(400).json({ error: 'Goal title is required' });
-      }
-
-      const newGoal = await dbEngine.createGoal({
-        user_id: req.userId,
-        title: title.trim(),
-        period_type: period_type || 'daily',
-        period_key: period_key || new Date().toISOString().split('T')[0],
-        target_value: Number(target_value) || 1,
-        current_value: Number(current_value) || 0,
-        category: category || 'general'
-      });
-
-      res.status(201).json(newGoal);
+      const goal = await goalService.createGoal(req.userId, req.body);
+      res.status(201).json(goal);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
   // PATCH /api/goals/:id
   router.patch('/:id', async (req, res) => {
     try {
-      const { id } = req.params;
-      const updatedGoal = await dbEngine.updateGoal(id, req.body, req.userId);
-      if (!updatedGoal) {
-        return res.status(404).json({ error: 'Goal not found or unauthorized' });
-      }
-      res.json(updatedGoal);
+      const goal = await goalService.updateGoal(req.params.id, req.body, req.userId);
+      res.json(goal);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
   // DELETE /api/goals/:id
   router.delete('/:id', async (req, res) => {
     try {
-      const { id } = req.params;
-      const result = await dbEngine.deleteGoal(id, req.userId);
-      if (!result) {
-        return res.status(404).json({ error: 'Goal not found or unauthorized' });
-      }
+      const result = await goalService.deleteGoal(req.params.id, req.userId);
       res.json(result);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
-} catch (e) {}
+}
 
 export default router;

@@ -1,57 +1,51 @@
-import { dbEngine } from '../db.js';
+import { eventService } from '../services/eventService.js';
 import { authMiddleware } from '../middleware/auth.js';
 
-let router = null;
-
+let expressModule;
 try {
-  const expressModule = await import('express');
-  const express = expressModule.default;
-  router = express.Router();
+  expressModule = await import('express');
+} catch (e) {
+  expressModule = null;
+}
 
+const router = expressModule ? expressModule.default.Router() : null;
+
+if (router) {
   router.use(authMiddleware);
 
+  // GET /api/events
   router.get('/', async (req, res) => {
     try {
       const { from, to } = req.query;
-      const events = await dbEngine.getEvents({ userId: req.userId, from, to });
+      const events = await eventService.getEvents({ userId: req.userId, from, to });
       res.json(events);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
+  // POST /api/events
   router.post('/', async (req, res) => {
     try {
-      const { title, event_date, event_time, category, notes } = req.body;
-      if (!title || !event_date) {
-        return res.status(400).json({ error: 'Title and event_date are required' });
-      }
-      const newEvent = await dbEngine.createEvent({
-        user_id: req.userId,
-        title: title.trim(),
-        event_date,
-        event_time: event_time || null,
-        category: category || 'general',
-        notes: notes || null
-      });
-      res.status(201).json(newEvent);
+      const event = await eventService.createEvent(req.userId, req.body);
+      res.status(201).json(event);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
 
+  // DELETE /api/events/:id
   router.delete('/:id', async (req, res) => {
     try {
-      const { id } = req.params;
-      const result = await dbEngine.deleteEvent(id, req.userId);
-      if (!result) {
-        return res.status(404).json({ error: 'Event not found or unauthorized' });
-      }
-      res.json({ success: true, id });
+      const result = await eventService.deleteEvent(req.params.id, req.userId);
+      res.json(result);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.status || 500;
+      res.status(status).json({ error: err.message || err });
     }
   });
-} catch (e) {}
+}
 
 export default router;
