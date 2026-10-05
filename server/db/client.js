@@ -28,7 +28,7 @@ loadEnv();
 export const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || 'user_000000000000000000000000001';
 const { SUPABASE_URL, SUPABASE_KEY } = process.env;
 
- // In-Memory Supabase Client for environment/testing when remote credentials are not provided 
+// In-Memory Supabase Client for environment/testing when remote credentials are not provided 
 function createInMemorySupabaseClient() {
   const memoryDb = {
     users: [{ id: DEFAULT_USER_ID, email: 'user@dailyos.local', timezone: 'UTC', created_at: new Date().toISOString() }],
