@@ -194,7 +194,7 @@ export default function App() {
       const res = await fetch('/api/health');
       if (res.ok) {
         const data = await res.json();
-        setDbMode(data.dbMode || 'sqlite');
+        setDbMode(data.dbMode || 'supabase');
       }
     } catch (e) {}
   };

@@ -97,7 +97,7 @@ To democratize high-level personal executive coaching through accessible AI tele
 | **Frontend UI** | React 19, Vite, Tailwind CSS, Recharts, Lucide Icons |
 | **Typography** | Newsreader (Google Fonts Serif) + Plus Jakarta Sans |
 | **Backend API** | Node.js, Express.js |
-| **Database** | SQLite (`better-sqlite3`) / Supabase PostgreSQL / Local JSON |
+| **Database** | Supabase PostgreSQL Engine |
 | **AI Integration** | Google Gemini API (`@google/genai`) with Heuristic Fallback |
 | **Scheduler** | `node-cron` daemon |
 | **Hosting & Infra** | AWS EC2 (Ubuntu 24.04), Nginx Reverse Proxy, Let's Encrypt SSL, PM2 |
