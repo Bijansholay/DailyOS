@@ -167,13 +167,25 @@ let supabaseInstance = null;
 if (SUPABASE_URL && SUPABASE_KEY) {
   try {
     const { createClient } = await import('@supabase/supabase-js');
-    supabaseInstance = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Node.js < 22 has no native WebSocket — use 'ws' package as transport
+    let wsTransport;
+    try {
+      const wsModule = await import('ws');
+      wsTransport = wsModule.default;
+    } catch (_) {
+      // 'ws' not installed — realtime unavailable but REST still works
+    }
+
+    const clientOptions = wsTransport
+      ? { realtime: { transport: wsTransport } }
+      : {};
+
+    supabaseInstance = createClient(SUPABASE_URL, SUPABASE_KEY, clientOptions);
     console.log('✅ Connected to Supabase PostgreSQL Database');
+    if (wsTransport) console.log('ℹ️  Using ws package for WebSocket (Node.js < 22)');
   } catch (err) {
-    console.error('❌ Supabase import failed:');
-    console.error('   Message:', err.message);
-    console.error('   Code:', err.code);
-    console.error('   Stack:', err.stack);
+    console.error('❌ Supabase connection failed:', err.message);
     console.warn('⚠️ Falling back to in-memory client');
     supabaseInstance = createInMemorySupabaseClient();
   }
