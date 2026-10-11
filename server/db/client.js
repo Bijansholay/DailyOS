@@ -170,11 +170,17 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     supabaseInstance = createClient(SUPABASE_URL, SUPABASE_KEY);
     console.log('✅ Connected to Supabase PostgreSQL Database');
   } catch (err) {
-    console.warn('⚠️ Could not load @supabase/supabase-js, initializing in-memory Supabase client');
+    console.error('❌ Supabase import failed:');
+    console.error('   Message:', err.message);
+    console.error('   Code:', err.code);
+    console.error('   Stack:', err.stack);
+    console.warn('⚠️ Falling back to in-memory client');
     supabaseInstance = createInMemorySupabaseClient();
   }
 } else {
-  console.log('ℹ️ SUPABASE_URL / SUPABASE_KEY not set. Using in-memory Supabase client');
+  console.warn('⚠️ SUPABASE_URL or SUPABASE_KEY not set in .env — using in-memory client');
+  console.warn('   SUPABASE_URL:', SUPABASE_URL ? '✅ set' : '❌ missing');
+  console.warn('   SUPABASE_KEY:', SUPABASE_KEY ? '✅ set' : '❌ missing');
   supabaseInstance = createInMemorySupabaseClient();
 }
 
