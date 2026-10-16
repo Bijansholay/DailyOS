@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
 import { 
   CheckCircle2, Circle, Clock, Plus, 
-  Calendar, RefreshCw, XSquare, AlertCircle, Sparkles, Flame, Zap, Download
+  RefreshCw, Sparkles, Flame, Download
 } from 'lucide-react';
 import { AreaChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { PrimaryButton, SecondaryButton } from './Button';
 import { formatTime, formatTimeRange } from '../utils/timeFormat';
 import { generateIcsContent, downloadIcsFile } from '../utils/icsExport';
 import SwipeableTaskCard from './SwipeableTaskCard';
+
+const PRIORITY_CONFIG = {
+  high:   { color: '#EC4899', bg: 'rgba(236,72,153,0.12)', label: 'High',   dot: '#EC4899' },
+  medium: { color: '#F59E0B', bg: 'rgba(245,158,11,0.12)',  label: 'Med',    dot: '#F59E0B' },
+  low:    { color: '#10B981', bg: 'rgba(16,185,129,0.12)',  label: 'Low',    dot: '#10B981' },
+};
+
+const CATEGORY_EMOJI = {
+  work: '💼', school: '📚', personal: '🏠', health: '🏃', default: '📌'
+};
 
 export default function TodayView({ 
   selectedDate, 
@@ -134,19 +144,17 @@ export default function TodayView({
   return (
     <div className="space-y-6">
       {/* TOP HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-5" style={{ borderColor: 'var(--border-color)' }}>
         <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-[var(--text-main)] tracking-tight">Today</h1>
-          <p className="text-xs text-[var(--text-muted)] mt-1">{formattedJournalDate} • {completedCount} of {tasks.length} tasks completed</p>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--accent-primary)' }}>Day Planner</p>
+          <h1 className="font-journal text-3xl md:text-4xl font-normal tracking-tight" style={{ color: 'var(--text-main)' }}>{formattedJournalDate}</h1>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            {completedCount} of {tasks.length} tasks · {completionRate}% complete
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <SecondaryButton onClick={handleExportIcs} icon={Download}>
-            Export Schedule (.ics)
-          </SecondaryButton>
-          <PrimaryButton
-            onClick={() => setShowTaskForm(!showTaskForm)}
-            icon={Plus}
-          >
+          <SecondaryButton onClick={handleExportIcs} icon={Download}>Export .ics</SecondaryButton>
+          <PrimaryButton onClick={() => setShowTaskForm(!showTaskForm)} icon={Plus}>
             Add Task
           </PrimaryButton>
         </div>
@@ -156,18 +164,32 @@ export default function TodayView({
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {calendarDays.map((d) => {
           const isSelected = d.dateStr === selectedDate;
+          const isToday = d.dateStr === new Date().toISOString().split('T')[0];
           return (
             <button
               key={d.dateStr}
               onClick={() => onSelectDate && onSelectDate(d.dateStr)}
-              className={`flex flex-col items-center justify-center min-w-[64px] px-3.5 py-2.5 rounded-2xl transition-all ${
+              className={`flex flex-col items-center justify-center min-w-[64px] px-3 py-2.5 rounded-2xl transition-all relative ${
                 isSelected
-                  ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold shadow-md scale-105'
-                  : 'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-color)] hover:text-[var(--text-main)] hover:border-[var(--text-muted)]'
+                  ? 'shadow-lg scale-105'
+                  : 'hover:scale-[1.02]'
               }`}
+              style={{
+                background: isSelected ? 'var(--btn-primary-bg)' : 'var(--bg-card)',
+                color: isSelected ? 'var(--btn-primary-text)' : 'var(--text-muted)',
+                border: isSelected ? '1px solid transparent' : '1px solid var(--border-color)',
+                boxShadow: isSelected ? '0 6px 20px -4px rgba(147,51,234,0.4)' : undefined
+              }}
             >
-              <span className="text-[10px] font-semibold uppercase">{d.dayNum}</span>
-              <span className="text-xs">{d.dayName}</span>
+              {isToday && !isSelected && (
+                <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]" />
+              )}
+              <span className="text-[10px] font-bold uppercase">{d.dayName}</span>
+              <span className={`text-lg font-extrabold leading-none mt-0.5 ${isSelected ? '' : 'text-[var(--text-main)]'}`}>{d.dayNum}</span>
+              {isToday && (
+                <span className={`text-[9px] font-semibold mt-0.5 ${isSelected ? 'opacity-80' : ''}`}
+                  style={{ color: isSelected ? 'inherit' : 'var(--accent-primary)' }}>TODAY</span>
+              )}
             </button>
           );
         })}
@@ -214,37 +236,55 @@ export default function TodayView({
       )}
 
       {/* KPI METRIC CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Tasks Completed</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-children">
+        <div className="rounded-2xl p-5 space-y-3 animate-slideUp"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+          <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Tasks Completed</span>
           <div className="flex items-baseline justify-between">
-            <h2 className="text-3xl font-extrabold text-[var(--text-main)]">{completedCount} <span className="text-sm font-normal text-[var(--text-muted)]">/ {tasks.length}</span></h2>
-            <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Active</span>
+            <h2 className="text-3xl font-extrabold" style={{ color: 'var(--text-main)' }}>
+              {completedCount} <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>/ {tasks.length}</span>
+            </h2>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+              style={{ background: 'rgba(16,185,129,0.12)', color: '#10B981', border: '1px solid rgba(16,185,129,0.25)' }}>
+              {tasks.length > 0 ? `${completionRate}%` : 'Active'}
+            </span>
           </div>
-          <div className="w-full bg-[var(--bg-base)] rounded-full h-1.5 mt-2 overflow-hidden border border-[var(--border-color)]">
-            <div className="bg-[var(--accent-primary)] h-1.5 rounded-full" style={{ width: `${completionRate}%` }} />
+          <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+            <div className="h-1.5 rounded-full progress-bar" style={{ width: `${completionRate}%`, background: 'var(--accent-primary)' }} />
           </div>
         </div>
 
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Completion Rate</span>
+        <div className="rounded-2xl p-5 space-y-3 animate-slideUp"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+          <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Focus Time</span>
           <div className="flex items-baseline justify-between">
-            <h2 className="text-3xl font-extrabold text-[var(--text-main)]">{completionRate}%</h2>
-            <span className="text-xs font-semibold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">{completedMinutes} / {estimatedMinutesTotal} mins</span>
+            <h2 className="text-3xl font-extrabold" style={{ color: 'var(--text-main)' }}>
+              {completedMinutes} <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>min</span>
+            </h2>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+              style={{ background: 'rgba(139,92,246,0.12)', color: '#8B5CF6', border: '1px solid rgba(139,92,246,0.25)' }}>
+              {estimatedMinutesTotal}m planned
+            </span>
           </div>
-          <div className="w-full bg-[var(--bg-base)] rounded-full h-1.5 mt-2 overflow-hidden border border-[var(--border-color)]">
-            <div className="bg-[var(--accent-primary)] h-1.5 rounded-full" style={{ width: `${completionRate}%` }} />
+          <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+            <div className="h-1.5 rounded-full progress-bar" style={{ width: `${completionRate}%`, background: '#8B5CF6' }} />
           </div>
         </div>
 
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Current Streak</span>
+        <div className="rounded-2xl p-5 space-y-3 animate-slideUp"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+          <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Day Streak</span>
           <div className="flex items-baseline justify-between">
-            <h2 className="text-3xl font-extrabold text-[var(--text-main)]">{streakCount} <span className="text-sm font-normal text-[var(--text-muted)]">days</span></h2>
-            <span className="text-xs font-semibold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">On Fire 🔥</span>
+            <h2 className="text-3xl font-extrabold" style={{ color: 'var(--text-main)' }}>
+              {streakCount} <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>days</span>
+            </h2>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"
+              style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.25)' }}>
+              <Flame className="w-3 h-3" /> On Fire
+            </span>
           </div>
-          <div className="w-full bg-[var(--bg-base)] rounded-full h-1.5 mt-2 overflow-hidden border border-[var(--border-color)]">
-            <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${Math.min(streakCount * 10, 100)}%` }} />
+          <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+            <div className="h-1.5 rounded-full progress-bar" style={{ width: `${Math.min(streakCount * 10, 100)}%`, background: '#F59E0B' }} />
           </div>
         </div>
       </div>
@@ -292,30 +332,48 @@ export default function TodayView({
           </div>
 
           {/* TODAY TASKS */}
-          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
-                <h3 className="text-sm font-semibold text-[var(--text-main)]">Focus Schedule</h3>
+                <Sparkles className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>Focus Schedule</h3>
+                {tasks.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    style={{ background: 'var(--accent-bg-subtle)', color: 'var(--accent-primary)' }}>
+                    {tasks.length}
+                  </span>
+                )}
               </div>
               <button
                 onClick={handleTriggerBrief}
                 disabled={isGeneratingBrief}
-                className="text-xs text-[var(--text-muted)] hover:text-[var(--accent-primary)] flex items-center gap-1"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-50"
+                style={{ color: 'var(--text-muted)', background: 'var(--bg-base)', border: '1px solid var(--border-color)' }}
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingBrief ? 'animate-spin' : ''}`} />
-                <span>AI Briefing</span>
+                <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingBrief ? 'animate-spin' : ''}`}
+                  style={{ color: isGeneratingBrief ? 'var(--accent-primary)' : undefined }} />
+                <span>{isGeneratingBrief ? 'Optimizing...' : 'AI Briefing'}</span>
               </button>
             </div>
 
+            <div className="p-4">
             {tasks.length === 0 ? (
-              <div className="py-8 text-center text-[var(--text-muted)] text-xs italic">
-                No tasks scheduled. Click "+ Add Task" to populate your planner.
+              <div className="py-12 text-center space-y-3">
+                <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center"
+                  style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)' }}>
+                  <Sparkles className="w-6 h-6" style={{ color: 'var(--text-muted)', opacity: 0.5 }} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>No tasks planned yet</p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Click "+ Add Task" to start building your day</p>
+                </div>
               </div>
             ) : (
-              <div className="space-y-2.5">
+              <div className="space-y-2 stagger-children">
                 {tasks.map((t) => {
                   const isDone = t.status === 'done';
+                  const priority = PRIORITY_CONFIG[t.priority] || PRIORITY_CONFIG.medium;
+                  const emoji = CATEGORY_EMOJI[t.category] || CATEGORY_EMOJI.default;
                   return (
                     <SwipeableTaskCard
                       key={t.id}
@@ -323,38 +381,55 @@ export default function TodayView({
                       onSwipeLeft={() => onStatusChange(t, 'pending')}
                     >
                       <div
-                        className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all ${
-                          isDone 
-                            ? 'bg-[var(--bg-base)]/60 border-[var(--border-color)] opacity-60' 
-                            : 'bg-[var(--bg-base)] border-[var(--border-color)] hover:border-[var(--accent-primary)]/40'
+                        className={`p-3.5 rounded-xl border-l-[3px] flex items-center justify-between gap-3 transition-all ${
+                          isDone ? 'opacity-55' : 'hover:border-l-[3px]'
                         }`}
+                        style={{
+                          background: isDone ? 'var(--bg-base)' : 'var(--bg-base)',
+                          borderColor: isDone ? 'var(--border-color)' : priority.dot,
+                          border: `1px solid var(--border-color)`,
+                          borderLeft: `3px solid ${isDone ? 'var(--border-color)' : priority.dot}`
+                        }}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <button
                             onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                            className="text-[var(--text-muted)] hover:text-[var(--accent-primary)] shrink-0"
+                            className="shrink-0 transition-all hover:scale-110"
+                            style={{ color: isDone ? 'var(--accent-primary)' : 'var(--text-muted)' }}
                           >
-                            {isDone ? <CheckCircle2 className="w-5 h-5 text-[var(--accent-primary)]" /> : <Circle className="w-5 h-5" />}
+                            {isDone
+                              ? <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+                              : <Circle className="w-5 h-5" />
+                            }
                           </button>
                           <div className="min-w-0">
-                            <h4 className={`text-xs font-semibold truncate ${isDone ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-main)]'}`}>
-                              {t.title}
+                            <h4 className={`text-xs font-semibold truncate ${
+                              isDone ? 'line-through' : ''
+                            }`} style={{ color: isDone ? 'var(--text-muted)' : 'var(--text-main)' }}>
+                              {emoji} {t.title}
                             </h4>
-                            <span className="text-[10px] text-[var(--text-muted)] capitalize">
-                              {t.category} • {t.scheduled_time ? formatTimeRange(t.scheduled_time, t.estimated_minutes, timeFormat) : `${t.estimated_minutes}m est`}
-                            </span>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] capitalize" style={{ color: 'var(--text-muted)' }}>
+                                {t.scheduled_time
+                                  ? formatTimeRange(t.scheduled_time, t.estimated_minutes, timeFormat)
+                                  : `${t.estimated_minutes}m est`}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
                         <button
                           onClick={() => onStatusChange(t, isDone ? 'pending' : 'done')}
-                          className={`px-3 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-all ${
-                            isDone 
-                              ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40' 
-                              : 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] hover:opacity-90'
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 transition-all hover:scale-105 ${
+                            isDone ? '' : ''
                           }`}
+                          style={{
+                            background: isDone ? 'rgba(16,185,129,0.1)' : 'var(--btn-primary-bg)',
+                            color: isDone ? '#10B981' : 'var(--btn-primary-text)',
+                            border: isDone ? '1px solid rgba(16,185,129,0.3)' : 'none'
+                          }}
                         >
-                          {isDone ? 'Completed ✓' : 'Mark Done'}
+                          {isDone ? '✓ Done' : 'Mark Done'}
                         </button>
                       </div>
                     </SwipeableTaskCard>
@@ -362,6 +437,7 @@ export default function TodayView({
                 })}
               </div>
             )}
+            </div>
           </div>
         </div>
 

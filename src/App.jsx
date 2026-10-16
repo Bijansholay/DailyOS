@@ -100,10 +100,15 @@ export default function App() {
 
   // Notification Toast
   const [toastMessage, setToastMessage] = useState(null);
+  const [toastVisible, setToastVisible] = useState(false);
 
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setToastVisible(true);
+    setTimeout(() => {
+      setToastVisible(false);
+      setTimeout(() => setToastMessage(null), 300);
+    }, 3000);
   };
 
   // Helper fetch with Bearer token authentication header & 401 interceptor
@@ -577,23 +582,35 @@ export default function App() {
                   const Icon = item.icon;
                   const isActive = activeView === item.id;
                   return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveView(item.id)}
-                      title={item.label}
-                      className={`relative p-3 rounded-2xl transition-all ${
-                        isActive
-                          ? 'bg-[#1C1924] text-[#A855F7] border border-[#2D273C] shadow-lg shadow-purple-950/40 scale-105'
-                          : 'text-slate-400 hover:text-white hover:bg-[#1C1924]/50'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[9px] font-bold bg-[#9333EA] text-white rounded-full border border-[#0C0B0E]">
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
+                    <div key={item.id} className="relative group">
+                      <button
+                        onClick={() => setActiveView(item.id)}
+                        className={`relative p-3 rounded-2xl transition-all ${
+                          isActive
+                            ? 'bg-[#1C1924] text-[#A855F7] border border-[#2D273C] shadow-lg shadow-purple-950/40 scale-105'
+                            : 'text-slate-400 hover:text-white hover:bg-[#1C1924]/50'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[9px] font-bold bg-[#9333EA] text-white rounded-full border border-[#0C0B0E]">
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                      {/* Tooltip */}
+                      <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap">
+                        <div className="px-3 py-1.5 rounded-xl text-xs font-semibold text-white shadow-xl"
+                          style={{ background: '#1C1924', border: '1px solid #2D273C' }}>
+                          {item.label}
+                          {item.badge !== undefined && item.badge > 0 && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#9333EA]">{item.badge}</span>
+                          )}
+                        </div>
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[5px] border-b-[5px] border-r-[6px] border-transparent"
+                          style={{ borderRightColor: '#2D273C' }} />
+                      </div>
+                    </div>
                   );
                 })}
               </nav>
@@ -718,7 +735,7 @@ export default function App() {
 
           {/* MAIN CONTAINER Scrollable */}
           <main className="flex-1 overflow-y-auto p-4 md:p-8">
-            <div className={theme === 'light' ? 'max-w-6xl mx-auto' : 'max-w-6xl mx-auto'}>
+            <div key={activeView} className="max-w-6xl mx-auto view-enter">
               {activeView === 'today' && (
                 <TodayView
                   selectedDate={selectedDate}
@@ -827,6 +844,31 @@ export default function App() {
       onClose={() => setCompletionModalTask(null)}
       onSubmit={handleCompletionSubmit}
     />
+
+    {/* TOAST NOTIFICATION */}
+    {toastMessage && (
+      <div
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-2xl shadow-2xl
+          flex items-center gap-3 text-sm font-medium max-w-sm w-full mx-4
+          border transition-all duration-300 pointer-events-none
+          ${toastVisible ? 'animate-toastIn opacity-100' : 'opacity-0 translate-y-2 scale-95'}`}
+        style={{
+          background: theme === 'dark' ? '#1C1924' : '#FFFFFF',
+          borderColor: theme === 'dark' ? '#2D273C' : '#E4E4E7',
+          color: theme === 'dark' ? '#FFFFFF' : '#09090B',
+          boxShadow: theme === 'dark'
+            ? '0 20px 60px -10px rgba(0,0,0,0.8), 0 0 0 1px rgba(147,51,234,0.15)'
+            : '0 20px 60px -10px rgba(0,0,0,0.12)'
+        }}
+      >
+        <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+          style={{ background: 'rgba(147,51,234,0.2)', color: '#9333EA' }}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" />
+        </span>
+        <span className="truncate">{toastMessage}</span>
+      </div>
+    )}
   </div>
 );
 }
