@@ -5,6 +5,7 @@ import dailyLogRouter from './routes/dailyLog.js';
 import patternsRouter from './routes/patterns.js';
 import aiRouter from './routes/ai.js';
 import goalsRouter from './routes/goals.js';
+import notesRouter from './routes/notes.js';
 
 let expressModule;
 try {
@@ -26,13 +27,14 @@ export function registerMicroserviceGateway(app) {
   if (patternsRouter) app.use('/api/patterns', patternsRouter);
   if (aiRouter) app.use('/api/ai', aiRouter);
   if (goalsRouter) app.use('/api/goals', goalsRouter);
+  if (notesRouter) app.use('/api/notes', notesRouter);
 
   // Microservice Gateway Health Check
   app.get('/api/health', (req, res) => {
     res.json({ 
       status: 'ok', 
       architecture: 'modular_microservices',
-      services: ['auth', 'tasks', 'events', 'goals', 'daily_logs', 'patterns', 'ai'],
+      services: ['auth', 'tasks', 'events', 'goals', 'notes', 'daily_logs', 'patterns', 'ai'],
       time: new Date().toISOString() 
     });
   });

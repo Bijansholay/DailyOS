@@ -1,8 +1,22 @@
-// Browser Native Desktop Notifications Utility
+// Browser and service-worker notification helpers
+
+export function getNotificationStatus() {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return { supported: false, secure: false, permission: 'unsupported' };
+  }
+
+  const localDevelopmentHost = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+  return {
+    supported: true,
+    secure: window.isSecureContext || localDevelopmentHost,
+    permission: Notification.permission
+  };
+}
 
 export async function requestNotificationPermission() {
-  if (!('Notification' in window)) {
-    console.warn('This browser does not support desktop notifications.');
+  const status = getNotificationStatus();
+  if (!status.supported || !status.secure) {
+    console.warn('Notifications require a supported browser on HTTPS or localhost.');
     return false;
   }
 
@@ -11,38 +25,54 @@ export async function requestNotificationPermission() {
   }
 
   if (Notification.permission !== 'denied') {
-    const permission = await Notification.requestPermission();
-    return permission === 'granted';
+    try {
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
+    } catch (error) {
+    console.error('Notification permission request failed:', error);
+    return false;
+    }
   }
 
   return false;
 }
 
-export function sendDesktopNotification(title, options = {}) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
+export async function sendDesktopNotification(title, options = {}) {
+  const status = getNotificationStatus();
+  if (!status.supported || !status.secure || status.permission !== 'granted') {
     return;
   }
 
   try {
-    const n = new Notification(title, {
+    const notificationOptions = {
       icon: '/favicon.svg',
       badge: '/favicon.svg',
       tag: 'dailyos-notification',
       ...options
-    });
+    };
+
+    // Service-worker notifications are the correct path for an installed PWA.
+    const registration = await navigator.serviceWorker?.getRegistration();
+    if (registration?.showNotification) {
+      await registration.showNotification(title, notificationOptions);
+      return;
+    }
+
+    const n = new Notification(title, notificationOptions);
 
     n.onclick = () => {
       window.focus();
       n.close();
     };
-  } catch (e) {
-    console.error('Error triggering notification:', e);
+  } catch (error) {
+    console.error('Error triggering notification:', error);
   }
 }
 
 // Check scheduled tasks every minute and send alert when time matches
 export function startTaskNotificationScheduler(tasks) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return () => {};
+  const status = getNotificationStatus();
+  if (!status.supported || !status.secure || status.permission !== 'granted') return () => {};
 
   const checkScheduledTasks = () => {
     const now = new Date();

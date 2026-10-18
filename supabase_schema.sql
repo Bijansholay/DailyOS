@@ -111,12 +111,23 @@ CREATE TABLE IF NOT EXISTS goals (
   completed_at TIMESTAMPTZ
 );
 
+-- 7. NOTES TABLE
+CREATE TABLE IF NOT EXISTS notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL DEFAULT 'Untitled note',
+  content TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Indexes for performance & query optimization
 CREATE INDEX IF NOT EXISTS idx_tasks_user_date ON tasks(user_id, scheduled_for);
 CREATE INDEX IF NOT EXISTS idx_events_user_date ON events(user_id, event_date);
 CREATE INDEX IF NOT EXISTS idx_daily_logs_user_date ON daily_logs(user_id, log_date);
 CREATE INDEX IF NOT EXISTS idx_patterns_user_date ON patterns(user_id, computed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_goals_user_period ON goals(user_id, period_type, period_key);
+CREATE INDEX IF NOT EXISTS idx_notes_user_updated ON notes(user_id, updated_at DESC);
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -125,6 +136,7 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE patterns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
 
 -- Permissive RLS Policies for API integration (Idempotent)
 DROP POLICY IF EXISTS "Allow all access to users" ON users;
@@ -144,3 +156,6 @@ CREATE POLICY "Allow all access to patterns" ON patterns FOR ALL USING (true);
 
 DROP POLICY IF EXISTS "Allow all access to goals" ON goals;
 CREATE POLICY "Allow all access to goals" ON goals FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Allow all access to notes" ON notes;
+CREATE POLICY "Allow all access to notes" ON notes FOR ALL USING (true) WITH CHECK (true);

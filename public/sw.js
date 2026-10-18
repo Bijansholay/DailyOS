@@ -29,6 +29,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+    const existing = windowClients.find((client) => 'focus' in client);
+    return existing ? existing.focus() : clients.openWindow('/');
+  }));
+});
+
 // Fetch Event - Network First for API calls, Cache First for Static Assets
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);

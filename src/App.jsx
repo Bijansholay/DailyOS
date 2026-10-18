@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, PieChart, Inbox, History, Calendar as CalendarIcon, 
-  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock, Bell, ListTodo, Settings, Sun, Moon, Target
+  ChevronLeft, ChevronRight, Database, CheckCircle2, BookOpen, LogOut, User, LogIn, Lock, Bell, ListTodo, Settings, Sun, Moon, Target, NotebookPen
 } from 'lucide-react';
-import { requestNotificationPermission, startTaskNotificationScheduler, sendDesktopNotification } from './utils/notifications';
+import { getNotificationStatus, requestNotificationPermission, startTaskNotificationScheduler, sendDesktopNotification } from './utils/notifications';
 
 import TodayView from './components/TodayView';
 import PatternsView from './components/PatternsView';
@@ -12,6 +12,7 @@ import LogHistoryView from './components/LogHistoryView';
 import UndoneTasksView from './components/UndoneTasksView';
 import SettingsView from './components/SettingsView';
 import GoalsView from './components/GoalsView';
+import NotesPad from './components/NotesPad';
 import LandingPage from './components/LandingPage';
 import CompletionModal from './components/CompletionModal';
 import AuthModal from './components/AuthModal';
@@ -20,6 +21,7 @@ const NAV_CONFIG = [
   { id: 'today', label: 'Day Planner', icon: LayoutDashboard },
   { id: 'undone', label: 'Undone Tasks', icon: ListTodo },
   { id: 'goals', label: 'Goals & Review', icon: Target },
+  { id: 'notes', label: 'Notes Pad', icon: NotebookPen },
   { id: 'patterns', label: 'Analytics', icon: PieChart },
   { id: 'backlog', label: 'Backlog', icon: Inbox },
   { id: 'history', label: 'Log History', icon: History },
@@ -27,7 +29,7 @@ const NAV_CONFIG = [
 ];
 
 export default function App() {
-  const [activeView, setActiveView] = useState('today'); // today | undone | goals | patterns | backlog | history | settings
+  const [activeView, setActiveView] = useState('today'); // today | undone | goals | notes | patterns | backlog | history | settings
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   // Theme State ('dark' | 'light')
@@ -163,6 +165,19 @@ export default function App() {
   );
 
   const handleEnableNotifications = async () => {
+    const status = getNotificationStatus();
+    if (!status.supported) {
+      showToast('This browser does not support notifications');
+      return;
+    }
+    if (!status.secure) {
+      showToast('Notifications require HTTPS or localhost');
+      return;
+    }
+    if (status.permission === 'denied') {
+      showToast('Notifications are blocked. Allow them in browser site settings.');
+      return;
+    }
     const granted = await requestNotificationPermission();
     setNotificationsEnabled(granted);
     if (granted) {
@@ -251,7 +266,7 @@ export default function App() {
   const handleAddTask = async (taskData) => {
     if (!currentUser) {
       setShowAuthModal(true);
-      return;
+      return false;
     }
     try {
       const res = await authFetch('/api/tasks', {
@@ -263,9 +278,12 @@ export default function App() {
         fetchTodayData();
         fetchBacklogTasks();
         fetchUndoneTasks();
+        return true;
       }
+      return false;
     } catch (err) {
       console.error('Error adding task:', err);
+      return false;
     }
   };
 
@@ -774,6 +792,13 @@ export default function App() {
                 theme={theme}
                 dailyTaskTarget={dailyTaskTarget}
                 dailyFocusTarget={dailyFocusTarget}
+              />
+            )}
+
+            {activeView === 'notes' && (
+              <NotesPad
+                authFetch={authFetch}
+                onAddTask={handleAddTask}
               />
             )}
 

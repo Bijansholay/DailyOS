@@ -81,6 +81,16 @@ CREATE TABLE IF NOT EXISTS goals (
     completed_at TIMESTAMPTZ
 );
 
+-- Personal notes and long form writing
+CREATE TABLE IF NOT EXISTS notes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL DEFAULT 'Untitled note',
+    content TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for optimal querying
 CREATE INDEX IF NOT EXISTS idx_tasks_user_date ON tasks(user_id, scheduled_for);
 CREATE INDEX IF NOT EXISTS idx_tasks_user_status ON tasks(user_id, status);
@@ -88,6 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_events_user_date ON events(user_id, event_date);
 CREATE INDEX IF NOT EXISTS idx_daily_logs_user_date ON daily_logs(user_id, log_date);
 CREATE INDEX IF NOT EXISTS idx_patterns_user_computed ON patterns(user_id, computed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_goals_user_period ON goals(user_id, period_type, period_key);
+CREATE INDEX IF NOT EXISTS idx_notes_user_updated ON notes(user_id, updated_at DESC);
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -96,6 +107,7 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE patterns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
 
 -- The application uses its own signed JWT authentication. These requests do
 -- not carry a Supabase Auth identity, so auth.uid() is NULL here. Authorization
@@ -108,6 +120,7 @@ DROP POLICY IF EXISTS "Users can manage their own events" ON events;
 DROP POLICY IF EXISTS "Users can manage their own daily logs" ON daily_logs;
 DROP POLICY IF EXISTS "Users can manage their own patterns" ON patterns;
 DROP POLICY IF EXISTS "Users can manage their own goals" ON goals;
+DROP POLICY IF EXISTS "Users can manage their own notes" ON notes;
 
 CREATE POLICY "Users can manage their own data" ON users FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Users can manage their own tasks" ON tasks FOR ALL USING (true) WITH CHECK (true);
@@ -115,3 +128,4 @@ CREATE POLICY "Users can manage their own events" ON events FOR ALL USING (true)
 CREATE POLICY "Users can manage their own daily logs" ON daily_logs FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Users can manage their own patterns" ON patterns FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Users can manage their own goals" ON goals FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Users can manage their own notes" ON notes FOR ALL USING (true) WITH CHECK (true);

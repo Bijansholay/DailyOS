@@ -5,6 +5,7 @@ import { eventsDb } from './db/eventsDb.js';
 import { dailyLogsDb } from './db/dailyLogsDb.js';
 import { patternsDb } from './db/patternsDb.js';
 import { goalsDb } from './db/goalsDb.js';
+import { notesDb } from './db/notesDb.js';
 
 export const dbEngine = {
   mode: 'supabase',
@@ -42,5 +43,11 @@ export const dbEngine = {
   getGoals: (params) => goalsDb.getGoals(params),
   createGoal: (goalData) => goalsDb.createGoal(goalData),
   updateGoal: (id, updates, userId) => goalsDb.updateGoal(id, updates, userId),
-  deleteGoal: (id, userId) => goalsDb.deleteGoal(id, userId)
+  deleteGoal: (id, userId) => goalsDb.deleteGoal(id, userId),
+
+  // Notes
+  getNotes: (userId) => notesDb.getNotes(userId),
+  createNote: (userId, noteData) => notesDb.createNote(userId, noteData),
+  updateNote: (id, userId, updates) => notesDb.updateNote(id, userId, updates),
+  deleteNote: (id, userId) => notesDb.deleteNote(id, userId)
 };

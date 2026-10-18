@@ -36,7 +36,8 @@ function createInMemorySupabaseClient() {
     events: [],
     daily_logs: [],
     patterns: [],
-    goals: []
+    goals: [],
+    notes: []
   }; 
 
   return {
